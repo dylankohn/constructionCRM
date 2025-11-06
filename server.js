@@ -368,7 +368,7 @@ app.delete('/inventory/:id', (req, res) => {
 // This must be AFTER all API routes
 // Only applies when serving the built React app
 if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
+  app.get('/*', (req, res) => {
     res.sendFile(path.join(__dirname, 'inventory-frontend/build', 'index.html'));
   });
 }
