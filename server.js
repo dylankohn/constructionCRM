@@ -363,17 +363,6 @@ app.delete('/inventory/:id', (req, res) => {
 });
 
 // -------------------------
-// CATCH-ALL ROUTE FOR SPA (Production Only)
-// -------------------------
-// This must be AFTER all API routes
-// Only applies when serving the built React app
-if (process.env.NODE_ENV === 'production') {
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'inventory-frontend/build', 'index.html'));
-  });
-}
-
-// -------------------------
 // START SERVER
 // -------------------------
 const PORT = process.env.PORT || 3000;
