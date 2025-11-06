@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-
-const BASE_URL = "http://localhost:3000";
+import { BASE_URL } from "../config";
 
 export default function Dashboard({ user, setUser }) {
     const navigate = useNavigate();
@@ -20,6 +19,7 @@ export default function Dashboard({ user, setUser }) {
             fetchCustomers();
             fetchAllJobs();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id]);
 
     const fetchCustomers = async () => {

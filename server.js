@@ -1,17 +1,22 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-const path = require('path');
 require('dotenv').config();
 
 const app = express();
-app.use(cors());
-app.use(express.json());
 
-// Only serve static files in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'inventory-frontend/build')));
-}
+// CORS configuration - allow frontend to access backend
+const corsOptions = {
+  origin: [
+    'http://localhost:3001',  // Local development
+    'https://your-frontend.netlify.app',  // Replace with your actual frontend URL
+    'https://your-frontend.vercel.app',   // Or Vercel URL
+    'https://your-frontend.onrender.com'  // Or Render URL
+  ],
+  credentials: true
+};
+app.use(cors(corsOptions));
+app.use(express.json());
 
 const db = mysql.createConnection({
   host: process.env.DB_HOST,

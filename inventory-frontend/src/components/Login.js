@@ -1,6 +1,5 @@
 import React, { useState } from "react";
-
-const BASE_URL = "http://localhost:3000";
+import { BASE_URL } from "../config";
 
 function Login({ setUser }) {
   const [username, setUsername] = useState("");

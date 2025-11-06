@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
-const BASE_URL = "http://localhost:3000";
+import { BASE_URL } from "../config";
 
 export default function JobMaterials({ user, setUser }) {
     const { jobId, customerId } = useParams();
@@ -32,6 +31,7 @@ export default function JobMaterials({ user, setUser }) {
             fetchMaterials();
             fetchJobName();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id, jobId]);
 
     useEffect(() => {
@@ -465,15 +465,6 @@ export default function JobMaterials({ user, setUser }) {
             style: 'currency',
             currency: 'USD',
         }).format(value);
-    };
-
-    const formatDate = (dateString) => {
-        if (!dateString) return "-";
-        return new Date(dateString).toLocaleDateString('en-US', {
-            month: 'short',
-            day: 'numeric',
-            year: 'numeric',
-        });
     };
 
     return (

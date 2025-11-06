@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
-const BASE_URL = "http://localhost:3000";
+import { BASE_URL } from "../config";
 
 export default function JobDetails({ user, setUser }) {
     const { jobId, customerId } = useParams();
@@ -9,7 +8,6 @@ export default function JobDetails({ user, setUser }) {
     
     const [job, setJob] = useState(null);
     const [customerName, setCustomerName] = useState("");
-    const [customerAddress, setCustomerAddress] = useState("");
     const [isEditing, setIsEditing] = useState(false);
     const [editedJob, setEditedJob] = useState({});
     const [loading, setLoading] = useState(true);
@@ -23,6 +21,7 @@ export default function JobDetails({ user, setUser }) {
             fetchJobDetails();
             fetchCustomerName();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id, jobId]);
 
     const fetchJobDetails = async () => {

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-
-const BASE_URL = "http://localhost:3000";
+import { BASE_URL } from "../config";
 
 export default function CustomerJobs({ user, setUser }) {
     const { customerId } = useParams();
@@ -20,6 +19,7 @@ export default function CustomerJobs({ user, setUser }) {
             fetchJobs();
             fetchCustomerName();
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id, customerId]);
 
     const fetchJobs = async () => {
