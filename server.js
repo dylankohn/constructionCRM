@@ -9,9 +9,7 @@ const app = express();
 const corsOptions = {
   origin: [
     'http://localhost:3001',  // Local development
-    'https://your-frontend.netlify.app',  // Replace with your actual frontend URL
-    'https://your-frontend.vercel.app',   // Or Vercel URL
-    'https://your-frontend.onrender.com'  // Or Render URL
+    'https://constructioncrm-1.onrender.com'  // Your actual Render frontend URL
   ],
   credentials: true
 };
