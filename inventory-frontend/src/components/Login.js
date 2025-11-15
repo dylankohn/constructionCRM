@@ -53,7 +53,7 @@ function Login({ setUser }) {
       <p>
         {isRegister ? "Already have an account?" : "Don't have an account?"}{" "}
         <span
-          style={{ color: "blue", cursor: "pointer" }}
+          style={{ color: "#4DA3A2", cursor: "pointer", fontWeight: 600 }}
           onClick={() => setIsRegister(!isRegister)}
         >
           {isRegister ? "Login" : "Create Account"}

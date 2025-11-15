@@ -10,6 +10,11 @@ export default function JobMaterials({ user, setUser }) {
     const [jobName, setJobName] = useState("");
     const [showAddForm, setShowAddForm] = useState(false);
     const [editingMaterial, setEditingMaterial] = useState(null);
+    const [cancelHover, setCancelHover] = useState(false);
+    const [statusDropdownOpen, setStatusDropdownOpen] = useState(null);
+    const [hoveredOption, setHoveredOption] = useState(null);
+    const [editingCell, setEditingCell] = useState(null); // { materialId, field }
+    const [editingValue, setEditingValue] = useState("");
     const [formData, setFormData] = useState({
         material_name: "",
         description: "",
@@ -168,7 +173,7 @@ export default function JobMaterials({ user, setUser }) {
     const styles = {
         page: {
             minHeight: "100vh",
-            fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
+            fontFamily: "'DM Sans', sans-serif",
             background: "#f5f7fb",
             margin: 0,
         },
@@ -177,7 +182,7 @@ export default function JobMaterials({ user, setUser }) {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "16px 24px",
-            background: "#ffffff",
+            background: "#234848",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             position: "sticky",
             top: 0,
@@ -190,29 +195,29 @@ export default function JobMaterials({ user, setUser }) {
         },
         backButton: {
             appearance: "none",
-            border: "1px solid #e5e7eb",
-            background: "#ffffff",
+            border: "1px solid #99CFCE",
+            background: "transparent",
             padding: "8px 16px",
             borderRadius: 6,
             cursor: "pointer",
             fontSize: 14,
-            color: "#111827",
+            color: "#99CFCE",
             transition: "background .12s",
         },
         title: {
             fontSize: 18,
             fontWeight: 600,
-            color: "#111827",
+            color: "#ffffff",
         },
         logoutBtn: {
             appearance: "none",
-            border: "1px solid #e5e7eb",
-            background: "#ffffff",
+            border: "1px solid #99CFCE",
+            background: "transparent",
             padding: "8px 12px",
             borderRadius: 6,
             cursor: "pointer",
             fontSize: 14,
-            color: "#111827",
+            color: "#99CFCE",
             transition: "background .12s",
         },
         content: {
@@ -233,12 +238,12 @@ export default function JobMaterials({ user, setUser }) {
         totalCost: {
             fontSize: 24,
             fontWeight: 700,
-            color: "#10b981",
+            color: "#4DA3A2",
         },
         addButton: {
             appearance: "none",
-            border: "2px solid #10b981",
-            background: "#10b981",
+            border: "2px solid #4DA3A2",
+            background: "#4DA3A2",
             padding: "12px 24px",
             borderRadius: 8,
             cursor: "pointer",
@@ -251,7 +256,7 @@ export default function JobMaterials({ user, setUser }) {
             background: "#ffffff",
             borderRadius: 12,
             boxShadow: "0 2px 8px rgba(0,0,0,0.08)",
-            overflow: "hidden",
+            overflow: "visible",
         },
         table: {
             width: "100%",
@@ -263,44 +268,108 @@ export default function JobMaterials({ user, setUser }) {
             textAlign: "left",
             fontSize: 13,
             fontWeight: 700,
-            color: "#6b7280",
+            color: "#234848",
             textTransform: "uppercase",
             letterSpacing: "0.5px",
-            borderBottom: "2px solid #e5e7eb",
+            borderBottom: "2px solid #99CFCE",
         },
         td: {
             padding: "16px",
             borderBottom: "1px solid #f3f4f6",
             fontSize: 14,
-            color: "#111827",
+            color: "#0F1F1F",
+            position: "relative",
         },
         statusBadge: {
             display: "inline-block",
-            padding: "4px 12px",
-            borderRadius: 12,
-            fontSize: 12,
+            padding: "6px 14px",
+            borderRadius: 16,
+            fontSize: 13,
             fontWeight: 600,
             textTransform: "capitalize",
+            cursor: "pointer",
+            transition: "all 0.2s ease",
+            border: "2px solid transparent",
+            userSelect: "none",
         },
         statusNeeded: {
             background: "#fee2e2",
             color: "#991b1b",
+            borderColor: "#fca5a5",
         },
         statusOrdered: {
-            background: "#fef3c7",
-            color: "#92400e",
+            background: "#B0AF63",
+            color: "#ffffff",
+            borderColor: "#9d9c56",
         },
         statusInTransit: {
-            background: "#dbeafe",
-            color: "#1e40af",
+            background: "#99CFCE",
+            color: "#0F1F1F",
+            borderColor: "#7db9b8",
         },
         statusDelivered: {
-            background: "#d1fae5",
-            color: "#065f46",
+            background: "#4DA3A2",
+            color: "#ffffff",
+            borderColor: "#3d8a89",
         },
         statusInstalled: {
-            background: "#ddd6fe",
-            color: "#5b21b6",
+            background: "#234848",
+            color: "#ffffff",
+            borderColor: "#0F1F1F",
+        },
+        statusDropdown: {
+            position: "absolute",
+            top: "100%",
+            left: "50%",
+            transform: "translateX(-50%)",
+            marginTop: 8,
+            background: "#ffffff",
+            border: "2px solid #99CFCE",
+            borderRadius: 12,
+            boxShadow: "0 8px 24px rgba(0,0,0,0.15)",
+            zIndex: 1000,
+            minWidth: 140,
+            overflow: "hidden",
+        },
+        statusDropdownOption: {
+            padding: "10px 16px",
+            cursor: "pointer",
+            fontSize: 13,
+            fontWeight: 600,
+            textTransform: "capitalize",
+            transition: "all 0.15s",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            background: "#ffffff",
+            color: "#0F1F1F",
+        },
+        statusDropdownOptionHover: {
+            background: "#f9fafb",
+        },
+        statusDropdownOptionDivider: {
+            borderBottom: "1px solid #f3f4f6",
+        },
+        statusContainer: {
+            position: "relative",
+            display: "inline-block",
+        },
+        editableCell: {
+            cursor: "pointer",
+            transition: "background 0.15s",
+        },
+        editableCellHover: {
+            background: "#f9fafb",
+        },
+        editingInput: {
+            width: "100%",
+            padding: "6px 8px",
+            fontSize: 14,
+            border: "2px solid #4DA3A2",
+            borderRadius: 4,
+            outline: "none",
+            background: "#ffffff",
+            color: "#0F1F1F",
         },
         actionButton: {
             appearance: "none",
@@ -315,7 +384,7 @@ export default function JobMaterials({ user, setUser }) {
             marginRight: 8,
         },
         editButton: {
-            color: "#4f46e5",
+            color: "#4DA3A2",
         },
         deleteButton: {
             color: "#dc2626",
@@ -347,7 +416,7 @@ export default function JobMaterials({ user, setUser }) {
         modalTitle: {
             fontSize: 24,
             fontWeight: 700,
-            color: "#111827",
+            color: "#0F1F1F",
             marginBottom: 24,
         },
         formGrid: {
@@ -365,14 +434,14 @@ export default function JobMaterials({ user, setUser }) {
             display: "block",
             fontSize: 14,
             fontWeight: 600,
-            color: "#374151",
+            color: "#234848",
             marginBottom: 8,
         },
         input: {
             width: "100%",
             padding: "10px 12px",
             fontSize: 16,
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             borderRadius: 6,
             outline: "none",
             transition: "border-color .15s",
@@ -382,7 +451,7 @@ export default function JobMaterials({ user, setUser }) {
             width: "100%",
             padding: "10px 12px",
             fontSize: 16,
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             borderRadius: 6,
             outline: "none",
             transition: "border-color .15s",
@@ -395,7 +464,7 @@ export default function JobMaterials({ user, setUser }) {
             width: "100%",
             padding: "10px 12px",
             fontSize: 16,
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             borderRadius: 6,
             outline: "none",
             transition: "border-color .15s",
@@ -408,13 +477,13 @@ export default function JobMaterials({ user, setUser }) {
             gap: 12,
             marginTop: 24,
             paddingTop: 24,
-            borderTop: "2px solid #e5e7eb",
+            borderTop: "2px solid #99CFCE",
         },
         submitButton: {
             flex: 1,
             appearance: "none",
             border: "none",
-            background: "#10b981",
+            background: "#4DA3A2",
             padding: "12px 24px",
             borderRadius: 6,
             cursor: "pointer",
@@ -426,15 +495,19 @@ export default function JobMaterials({ user, setUser }) {
         cancelButton: {
             flex: 1,
             appearance: "none",
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             background: "#ffffff",
             padding: "12px 24px",
             borderRadius: 6,
             cursor: "pointer",
             fontSize: 16,
             fontWeight: 600,
-            color: "#111827",
-            transition: "background .15s",
+            color: "#0F1F1F",
+            transition: "all .15s",
+        },
+        cancelButtonHover: {
+            background: "#f3f4f6",
+            borderColor: "#99CFCE",
         },
         emptyState: {
             padding: "60px 20px",
@@ -456,6 +529,128 @@ export default function JobMaterials({ user, setUser }) {
                 return styles.statusInstalled;
             default:
                 return styles.statusNeeded;
+        }
+    };
+
+    const statusOptions = [
+        { value: "needed", label: "Needed" },
+        { value: "ordered", label: "Ordered" },
+        { value: "in_transit", label: "In Transit" },
+        { value: "delivered", label: "Delivered" },
+        { value: "installed", label: "Installed" }
+    ];
+
+    const handleStatusClick = (materialId, e) => {
+        e.stopPropagation();
+        setStatusDropdownOpen(statusDropdownOpen === materialId ? null : materialId);
+    };
+
+    const handleStatusChange = async (material, newStatus) => {
+        setStatusDropdownOpen(null);
+        
+        if (material.status === newStatus) return;
+
+        try {
+            const res = await fetch(`${BASE_URL}/materials/${material.id}/${user.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    material_name: material.material_name,
+                    description: material.description,
+                    quantity: material.quantity,
+                    unit: material.unit,
+                    unit_cost: material.unit_cost,
+                    status: newStatus,
+                    location: material.location,
+                    supplier: material.supplier,
+                    order_date: material.order_date,
+                    expected_delivery: material.expected_delivery,
+                    actual_delivery: material.actual_delivery,
+                    notes: material.notes,
+                    job_id: jobId,
+                }),
+            });
+
+            if (res.ok) {
+                fetchMaterials();
+            } else {
+                const errorData = await res.json();
+                console.error("Failed to update status:", errorData);
+                alert("Failed to update status: " + (errorData.error || "Unknown error"));
+            }
+        } catch (err) {
+            console.error("Error updating status:", err);
+            alert("Error updating status: " + err.message);
+        }
+    };
+
+    // Close dropdown when clicking outside
+    useEffect(() => {
+        const handleClickOutside = () => {
+            if (statusDropdownOpen) {
+                setStatusDropdownOpen(null);
+            }
+        };
+        
+        if (statusDropdownOpen) {
+            document.addEventListener('click', handleClickOutside);
+            return () => document.removeEventListener('click', handleClickOutside);
+        }
+    }, [statusDropdownOpen]);
+
+    const handleCellClick = (material, field) => {
+        setEditingCell({ materialId: material.id, field });
+        setEditingValue(material[field] || "");
+    };
+
+    const handleCellSave = async (material) => {
+        if (!editingCell) return;
+
+        const updatedValue = editingValue;
+        setEditingCell(null);
+
+        // Don't update if value hasn't changed
+        if (material[editingCell.field] === updatedValue) return;
+
+        try {
+            const res = await fetch(`${BASE_URL}/materials/${material.id}/${user.id}`, {
+                method: "PUT",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    material_name: editingCell.field === "material_name" ? updatedValue : material.material_name,
+                    description: editingCell.field === "description" ? updatedValue : material.description,
+                    quantity: editingCell.field === "quantity" ? updatedValue : material.quantity,
+                    unit: editingCell.field === "unit" ? updatedValue : material.unit,
+                    unit_cost: editingCell.field === "unit_cost" ? updatedValue : material.unit_cost,
+                    status: material.status,
+                    location: editingCell.field === "location" ? updatedValue : material.location,
+                    supplier: editingCell.field === "supplier" ? updatedValue : material.supplier,
+                    order_date: material.order_date,
+                    expected_delivery: material.expected_delivery,
+                    actual_delivery: material.actual_delivery,
+                    notes: material.notes,
+                    job_id: jobId,
+                }),
+            });
+
+            if (res.ok) {
+                fetchMaterials();
+            } else {
+                const errorData = await res.json();
+                console.error("Failed to update:", errorData);
+                alert("Failed to update: " + (errorData.error || "Unknown error"));
+            }
+        } catch (err) {
+            console.error("Error updating:", err);
+            alert("Error updating: " + err.message);
+        }
+    };
+
+    const handleKeyPress = (e, material) => {
+        if (e.key === "Enter") {
+            handleCellSave(material);
+        } else if (e.key === "Escape") {
+            setEditingCell(null);
         }
     };
 
@@ -513,7 +708,17 @@ export default function JobMaterials({ user, setUser }) {
                                     <th style={styles.th}>Quantity</th>
                                     <th style={styles.th}>Unit Cost</th>
                                     <th style={styles.th}>Total Cost</th>
-                                    <th style={styles.th}>Status</th>
+                                    <th style={styles.th}>
+                                        Status 
+                                        <span style={{ 
+                                            fontSize: 10, 
+                                            fontWeight: 400, 
+                                            color: "#99CFCE",
+                                            display: "block",
+                                            marginTop: 2
+                                        }}>
+                                        </span>
+                                    </th>
                                     <th style={styles.th}>Location</th>
                                     <th style={styles.th}>Supplier</th>
                                     <th style={styles.th}>Actions</th>
@@ -522,28 +727,214 @@ export default function JobMaterials({ user, setUser }) {
                             <tbody>
                                 {materials.map((material) => (
                                     <tr key={material.id}>
-                                        <td style={styles.td}>
-                                            <div style={{ fontWeight: 600 }}>{material.material_name}</div>
-                                            {material.description && (
-                                                <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
-                                                    {material.description}
-                                                </div>
+                                        <td 
+                                            style={{
+                                                ...styles.td,
+                                                ...styles.editableCell,
+                                            }}
+                                            onClick={() => handleCellClick(material, "material_name")}
+                                            title="Click to edit"
+                                        >
+                                            {editingCell?.materialId === material.id && editingCell?.field === "material_name" ? (
+                                                <input
+                                                    type="text"
+                                                    value={editingValue}
+                                                    onChange={(e) => setEditingValue(e.target.value)}
+                                                    onBlur={() => handleCellSave(material)}
+                                                    onKeyDown={(e) => handleKeyPress(e, material)}
+                                                    style={styles.editingInput}
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                <>
+                                                    <div style={{ fontWeight: 600 }}>{material.material_name}</div>
+                                                    {material.description && (
+                                                        <div style={{ fontSize: 12, color: "#6b7280", marginTop: 4 }}>
+                                                            {material.description}
+                                                        </div>
+                                                    )}
+                                                </>
                                             )}
                                         </td>
                                         <td style={styles.td}>
-                                            {material.quantity} {material.unit || "units"}
+                                            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                                                <div
+                                                    style={{
+                                                        flex: 1,
+                                                        ...styles.editableCell,
+                                                        padding: "4px 8px",
+                                                        borderRadius: 4,
+                                                    }}
+                                                    onClick={() => handleCellClick(material, "quantity")}
+                                                    title="Click to edit quantity"
+                                                >
+                                                    {editingCell?.materialId === material.id && editingCell?.field === "quantity" ? (
+                                                        <input
+                                                            type="number"
+                                                            step="0.01"
+                                                            value={editingValue}
+                                                            onChange={(e) => setEditingValue(e.target.value)}
+                                                            onBlur={() => handleCellSave(material)}
+                                                            onKeyDown={(e) => handleKeyPress(e, material)}
+                                                            style={styles.editingInput}
+                                                            autoFocus
+                                                        />
+                                                    ) : (
+                                                        material.quantity
+                                                    )}
+                                                </div>
+                                                <div
+                                                    style={{
+                                                        ...styles.editableCell,
+                                                        padding: "4px 8px",
+                                                        borderRadius: 4,
+                                                        minWidth: 60,
+                                                    }}
+                                                    onClick={() => handleCellClick(material, "unit")}
+                                                    title="Click to edit unit"
+                                                >
+                                                    {editingCell?.materialId === material.id && editingCell?.field === "unit" ? (
+                                                        <input
+                                                            type="text"
+                                                            value={editingValue}
+                                                            onChange={(e) => setEditingValue(e.target.value)}
+                                                            onBlur={() => handleCellSave(material)}
+                                                            onKeyDown={(e) => handleKeyPress(e, material)}
+                                                            style={styles.editingInput}
+                                                            autoFocus
+                                                        />
+                                                    ) : (
+                                                        material.unit || "units"
+                                                    )}
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td style={styles.td}>{formatCurrency(material.unit_cost)}</td>
+                                        <td 
+                                            style={{
+                                                ...styles.td,
+                                                ...styles.editableCell,
+                                            }}
+                                            onClick={() => handleCellClick(material, "unit_cost")}
+                                            title="Click to edit cost"
+                                        >
+                                            {editingCell?.materialId === material.id && editingCell?.field === "unit_cost" ? (
+                                                <input
+                                                    type="number"
+                                                    step="0.01"
+                                                    value={editingValue}
+                                                    onChange={(e) => setEditingValue(e.target.value)}
+                                                    onBlur={() => handleCellSave(material)}
+                                                    onKeyDown={(e) => handleKeyPress(e, material)}
+                                                    style={styles.editingInput}
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                formatCurrency(material.unit_cost)
+                                            )}
+                                        </td>
                                         <td style={styles.td}>
                                             <strong>{formatCurrency(material.total_cost)}</strong>
                                         </td>
                                         <td style={styles.td}>
-                                            <span style={{ ...styles.statusBadge, ...getStatusStyle(material.status) }}>
-                                                {material.status.replace("_", " ")}
-                                            </span>
+                                            <div style={styles.statusContainer}>
+                                                <span 
+                                                    style={{ 
+                                                        ...styles.statusBadge, 
+                                                        ...getStatusStyle(material.status),
+                                                    }}
+                                                    onClick={(e) => handleStatusClick(material.id, e)}
+                                                    onMouseEnter={(e) => {
+                                                        e.target.style.transform = "scale(1.05)";
+                                                        e.target.style.boxShadow = "0 2px 8px rgba(0,0,0,0.15)";
+                                                    }}
+                                                    onMouseLeave={(e) => {
+                                                        e.target.style.transform = "scale(1)";
+                                                        e.target.style.boxShadow = "none";
+                                                    }}
+                                                    title="Click to select status"
+                                                >
+                                                    {material.status.replace("_", " ")}
+                                                </span>
+                                                
+                                                {statusDropdownOpen === material.id && (
+                                                    <div style={styles.statusDropdown}>
+                                                        {statusOptions.map((option, index) => (
+                                                            <div
+                                                                key={option.value}
+                                                                style={{
+                                                                    ...styles.statusDropdownOption,
+                                                                    ...(hoveredOption === option.value && option.value !== material.status ? styles.statusDropdownOptionHover : {}),
+                                                                    ...(index < statusOptions.length - 1 ? styles.statusDropdownOptionDivider : {}),
+                                                                    opacity: option.value === material.status ? 0.7 : 1,
+                                                                    transform: hoveredOption === option.value && option.value !== material.status ? "translateX(4px)" : "translateX(0)",
+                                                                }}
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleStatusChange(material, option.value);
+                                                                }}
+                                                                onMouseEnter={() => {
+                                                                    if (option.value !== material.status) {
+                                                                        setHoveredOption(option.value);
+                                                                    }
+                                                                }}
+                                                                onMouseLeave={() => {
+                                                                    setHoveredOption(null);
+                                                                }}
+                                                            >
+                                                                {option.value === material.status && (
+                                                                    <span style={{ fontSize: 10, color: "#4DA3A2", marginRight: 4 }}>✓</span>
+                                                                )}
+                                                                {option.label}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </div>
                                         </td>
-                                        <td style={styles.td}>{material.location || "-"}</td>
-                                        <td style={styles.td}>{material.supplier || "-"}</td>
+                                        <td 
+                                            style={{
+                                                ...styles.td,
+                                                ...styles.editableCell,
+                                            }}
+                                            onClick={() => handleCellClick(material, "location")}
+                                            title="Click to edit location"
+                                        >
+                                            {editingCell?.materialId === material.id && editingCell?.field === "location" ? (
+                                                <input
+                                                    type="text"
+                                                    value={editingValue}
+                                                    onChange={(e) => setEditingValue(e.target.value)}
+                                                    onBlur={() => handleCellSave(material)}
+                                                    onKeyDown={(e) => handleKeyPress(e, material)}
+                                                    style={styles.editingInput}
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                material.location || "-"
+                                            )}
+                                        </td>
+                                        <td 
+                                            style={{
+                                                ...styles.td,
+                                                ...styles.editableCell,
+                                            }}
+                                            onClick={() => handleCellClick(material, "supplier")}
+                                            title="Click to edit supplier"
+                                        >
+                                            {editingCell?.materialId === material.id && editingCell?.field === "supplier" ? (
+                                                <input
+                                                    type="text"
+                                                    value={editingValue}
+                                                    onChange={(e) => setEditingValue(e.target.value)}
+                                                    onBlur={() => handleCellSave(material)}
+                                                    onKeyDown={(e) => handleKeyPress(e, material)}
+                                                    style={styles.editingInput}
+                                                    autoFocus
+                                                />
+                                            ) : (
+                                                material.supplier || "-"
+                                            )}
+                                        </td>
                                         <td style={styles.td}>
                                             <button
                                                 onClick={() => handleEdit(material)}
@@ -634,7 +1025,19 @@ export default function JobMaterials({ user, setUser }) {
                                 </div>
 
                                 <div style={styles.formGroup}>
-                                    <label style={styles.label}>Status</label>
+                                    <label style={styles.label}>
+                                        Status
+                                        <span style={{ 
+                                            ...styles.statusBadge, 
+                                            ...getStatusStyle(formData.status),
+                                            marginLeft: 12,
+                                            fontSize: 11,
+                                            padding: "4px 10px",
+                                            cursor: "default"
+                                        }}>
+                                            {formData.status.replace("_", " ")}
+                                        </span>
+                                    </label>
                                     <select
                                         value={formData.status}
                                         onChange={(e) => handleChange("status", e.target.value)}
@@ -715,7 +1118,16 @@ export default function JobMaterials({ user, setUser }) {
                             </div>
 
                             <div style={styles.buttonGroup}>
-                                <button type="button" onClick={handleClose} style={styles.cancelButton}>
+                                <button 
+                                    type="button" 
+                                    onClick={handleClose} 
+                                    style={{
+                                        ...styles.cancelButton,
+                                        ...(cancelHover ? styles.cancelButtonHover : {}),
+                                    }}
+                                    onMouseEnter={() => setCancelHover(true)}
+                                    onMouseLeave={() => setCancelHover(false)}
+                                >
                                     Cancel
                                 </button>
                                 <button type="submit" style={styles.submitButton}>

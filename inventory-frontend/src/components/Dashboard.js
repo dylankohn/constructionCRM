@@ -8,6 +8,7 @@ export default function Dashboard({ user, setUser }) {
     const [customerHover, setCustomerHover] = useState(null);
     const [materialHover, setMaterialHover] = useState(null);
     const [addCustomerHover, setAddCustomerHover] = useState(false);
+    const [cancelHover, setCancelHover] = useState(false);
     const [showAddCustomerForm, setShowAddCustomerForm] = useState(false);
     const [newCustomerName, setNewCustomerName] = useState("");
     const [customers, setCustomers] = useState([]);
@@ -60,8 +61,8 @@ export default function Dashboard({ user, setUser }) {
     const styles = {
         page: {
             minHeight: "100vh",
-            fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
-            background: "#f5f7fb",
+            fontFamily: "'DM Sans', sans-serif",
+            background: "#f5f7fa",
             margin: 0,
         },
         header: {
@@ -69,7 +70,7 @@ export default function Dashboard({ user, setUser }) {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "16px 24px",
-            background: "#ffffff",
+            background: "#234848",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             position: "sticky",
             top: 0,
@@ -78,21 +79,22 @@ export default function Dashboard({ user, setUser }) {
         welcome: {
             fontSize: 18,
             fontWeight: 600,
-            color: "#111827",
+            color: "#ffffff",
         },
         logoutBtn: {
             appearance: "none",
-            border: "1px solid #e5e7eb",
-            background: "#ffffff",
+            border: "1px solid #99CFCE",
+            background: "transparent",
             padding: "8px 12px",
             borderRadius: 6,
             cursor: "pointer",
             fontSize: 14,
-            color: "#111827",
+            color: "#99CFCE",
             transition: "background .12s, box-shadow .12s, transform .06s",
         },
         logoutBtnHover: {
-            background: "#f3f4f6",
+            background: "#99CFCE",
+            color: "#0F1F1F",
             boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
         },
         content: {
@@ -116,10 +118,10 @@ export default function Dashboard({ user, setUser }) {
         boxTitle: {
             fontSize: 24,
             fontWeight: 700,
-            color: "#111827",
+            color: "#0F1F1F",
             marginBottom: 24,
             paddingBottom: 16,
-            borderBottom: "2px solid #e5e7eb",
+            borderBottom: "2px solid #99CFCE",
         },
         buttonGrid: {
             display: "grid",
@@ -128,33 +130,33 @@ export default function Dashboard({ user, setUser }) {
         },
         actionButton: {
             appearance: "none",
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             background: "#ffffff",
             padding: "20px 24px",
             borderRadius: 8,
             cursor: "pointer",
             fontSize: 16,
             fontWeight: 600,
-            color: "#111827",
+            color: "#0F1F1F",
             transition: "all .15s ease",
             textAlign: "center",
         },
         actionButtonHover: {
-            background: "#4f46e5",
-            borderColor: "#4f46e5",
+            background: "#4DA3A2",
+            borderColor: "#4DA3A2",
             color: "#ffffff",
             transform: "translateY(-2px)",
-            boxShadow: "0 4px 12px rgba(79, 70, 229, 0.3)",
+            boxShadow: "0 4px 12px rgba(77, 163, 162, 0.3)",
         },
         materialButton: {
             appearance: "none",
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             background: "#ffffff",
             padding: "20px 24px",
             borderRadius: 8,
             cursor: "pointer",
             fontSize: 16,
-            color: "#111827",
+            color: "#0F1F1F",
             transition: "all .15s ease",
             textAlign: "center",
             display: "flex",
@@ -163,16 +165,16 @@ export default function Dashboard({ user, setUser }) {
             justifyContent: "center",
         },
         materialButtonHover: {
-            background: "#10b981",
-            borderColor: "#10b981",
+            background: "#4DA3A2",
+            borderColor: "#4DA3A2",
             color: "#ffffff",
             transform: "translateY(-2px)",
-            boxShadow: "0 4px 12px rgba(16, 185, 129, 0.3)",
+            boxShadow: "0 4px 12px rgba(77, 163, 162, 0.3)",
         },
         addCustomerButton: {
             appearance: "none",
-            border: "2px solid #4f46e5",
-            background: "#4f46e5",
+            border: "2px solid #4DA3A2",
+            background: "#4DA3A2",
             padding: "16px 32px",
             borderRadius: 8,
             cursor: "pointer",
@@ -188,10 +190,10 @@ export default function Dashboard({ user, setUser }) {
             gap: 8,
         },
         addCustomerButtonHover: {
-            background: "#4338ca",
-            borderColor: "#4338ca",
+            background: "#3d8a89",
+            borderColor: "#4DA3A2",
             transform: "translateY(-1px)",
-            boxShadow: "0 4px 12px rgba(79, 70, 229, 0.4)",
+            boxShadow: "0 4px 12px rgba(77, 163, 162, 0.4)",
         },
         modalOverlay: {
             position: "fixed",
@@ -216,7 +218,7 @@ export default function Dashboard({ user, setUser }) {
         modalTitle: {
             fontSize: 24,
             fontWeight: 700,
-            color: "#111827",
+            color: "#0F1F1F",
             marginBottom: 24,
         },
         formGroup: {
@@ -226,21 +228,21 @@ export default function Dashboard({ user, setUser }) {
             display: "block",
             fontSize: 14,
             fontWeight: 600,
-            color: "#374151",
+            color: "#234848",
             marginBottom: 8,
         },
         input: {
             width: "100%",
             padding: "10px 12px",
             fontSize: 16,
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             borderRadius: 6,
             outline: "none",
             transition: "border-color .15s",
             boxSizing: "border-box",
         },
         inputFocus: {
-            borderColor: "#4f46e5",
+            borderColor: "#4DA3A2",
         },
         buttonGroup: {
             display: "flex",
@@ -251,7 +253,7 @@ export default function Dashboard({ user, setUser }) {
             flex: 1,
             appearance: "none",
             border: "none",
-            background: "#4f46e5",
+            background: "#4DA3A2",
             padding: "12px 24px",
             borderRadius: 6,
             cursor: "pointer",
@@ -261,23 +263,24 @@ export default function Dashboard({ user, setUser }) {
             transition: "background .15s",
         },
         submitButtonHover: {
-            background: "#4338ca",
+            background: "#3d8a89",
         },
         cancelButton: {
             flex: 1,
             appearance: "none",
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             background: "#ffffff",
             padding: "12px 24px",
             borderRadius: 6,
             cursor: "pointer",
             fontSize: 16,
             fontWeight: 600,
-            color: "#111827",
-            transition: "background .15s",
+            color: "#0F1F1F",
+            transition: "all .15s",
         },
         cancelButtonHover: {
             background: "#f3f4f6",
+            borderColor: "#99CFCE",
         },
     };
 
@@ -444,7 +447,12 @@ export default function Dashboard({ user, setUser }) {
                                 <button
                                     type="button"
                                     onClick={handleCloseForm}
-                                    style={styles.cancelButton}
+                                    style={{
+                                        ...styles.cancelButton,
+                                        ...(cancelHover ? styles.cancelButtonHover : {}),
+                                    }}
+                                    onMouseEnter={() => setCancelHover(true)}
+                                    onMouseLeave={() => setCancelHover(false)}
                                 >
                                     Cancel
                                 </button>

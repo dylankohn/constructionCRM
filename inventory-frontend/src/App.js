@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import Login from "./components/Login";
+import Login from "./components/login";
 import Dashboard from "./components/Dashboard";
 import CustomerJobs from "./components/CustomerJobs";
 import JobDetails from "./components/JobDetails";
@@ -44,7 +44,7 @@ function App() {
         justifyContent: "center",
         alignItems: "center",
         height: "100vh",
-        fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
+        fontFamily: "'DM Sans', sans-serif",
         color: "#6b7280"
       }}>
         Loading...

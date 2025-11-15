@@ -13,6 +13,7 @@ export default function CustomerJobs({ user, setUser }) {
     const [hover, setHover] = useState(false);
     const [addJobHover, setAddJobHover] = useState(false);
     const [jobHover, setJobHover] = useState(null);
+    const [cancelHover, setCancelHover] = useState(false);
 
     useEffect(() => {
         if (user?.id && customerId) {
@@ -97,7 +98,7 @@ export default function CustomerJobs({ user, setUser }) {
     const styles = {
         page: {
             minHeight: "100vh",
-            fontFamily: "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial",
+            fontFamily: "'DM Sans', sans-serif",
             background: "#f5f7fb",
             margin: 0,
         },
@@ -106,7 +107,7 @@ export default function CustomerJobs({ user, setUser }) {
             alignItems: "center",
             justifyContent: "space-between",
             padding: "16px 24px",
-            background: "#ffffff",
+            background: "#234848",
             boxShadow: "0 1px 3px rgba(0,0,0,0.08)",
             position: "sticky",
             top: 0,
@@ -119,37 +120,39 @@ export default function CustomerJobs({ user, setUser }) {
         },
         backButton: {
             appearance: "none",
-            border: "1px solid #e5e7eb",
-            background: "#ffffff",
+            border: "1px solid #99CFCE",
+            background: "transparent",
             padding: "8px 16px",
             borderRadius: 6,
             cursor: "pointer",
             fontSize: 14,
-            color: "#111827",
+            color: "#99CFCE",
             transition: "background .12s, box-shadow .12s",
         },
         backButtonHover: {
-            background: "#f3f4f6",
+            background: "#99CFCE",
+            color: "#0F1F1F",
             boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
         },
         title: {
             fontSize: 18,
             fontWeight: 600,
-            color: "#111827",
+            color: "#ffffff",
         },
         logoutBtn: {
             appearance: "none",
-            border: "1px solid #e5e7eb",
-            background: "#ffffff",
+            border: "1px solid #99CFCE",
+            background: "transparent",
             padding: "8px 12px",
             borderRadius: 6,
             cursor: "pointer",
             fontSize: 14,
-            color: "#111827",
+            color: "#99CFCE",
             transition: "background .12s, box-shadow .12s",
         },
         logoutBtnHover: {
-            background: "#f3f4f6",
+            background: "#99CFCE",
+            color: "#0F1F1F",
             boxShadow: "0 1px 2px rgba(0,0,0,0.04)",
         },
         content: {
@@ -166,15 +169,15 @@ export default function CustomerJobs({ user, setUser }) {
         boxTitle: {
             fontSize: 24,
             fontWeight: 700,
-            color: "#111827",
+            color: "#0F1F1F",
             marginBottom: 24,
             paddingBottom: 16,
-            borderBottom: "2px solid #e5e7eb",
+            borderBottom: "2px solid #99CFCE",
         },
         addJobButton: {
             appearance: "none",
-            border: "2px solid #4f46e5",
-            background: "#4f46e5",
+            border: "2px solid #4DA3A2",
+            background: "#4DA3A2",
             padding: "16px 32px",
             borderRadius: 8,
             cursor: "pointer",
@@ -190,10 +193,10 @@ export default function CustomerJobs({ user, setUser }) {
             gap: 8,
         },
         addJobButtonHover: {
-            background: "#4338ca",
-            borderColor: "#4338ca",
+            background: "#3d8a89",
+            borderColor: "#4DA3A2",
             transform: "translateY(-1px)",
-            boxShadow: "0 4px 12px rgba(79, 70, 229, 0.4)",
+            boxShadow: "0 4px 12px rgba(77, 163, 162, 0.4)",
         },
         jobsGrid: {
             display: "grid",
@@ -202,7 +205,7 @@ export default function CustomerJobs({ user, setUser }) {
         },
         jobCard: {
             appearance: "none",
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             background: "#ffffff",
             padding: "20px",
             borderRadius: 8,
@@ -211,11 +214,11 @@ export default function CustomerJobs({ user, setUser }) {
             textAlign: "left",
         },
         jobCardHover: {
-            background: "#4f46e5",
-            borderColor: "#4f46e5",
+            background: "#4DA3A2",
+            borderColor: "#4DA3A2",
             color: "#ffffff",
             transform: "translateY(-2px)",
-            boxShadow: "0 4px 12px rgba(79, 70, 229, 0.3)",
+            boxShadow: "0 4px 12px rgba(77, 163, 162, 0.3)",
         },
         jobName: {
             fontSize: 18,
@@ -276,7 +279,7 @@ export default function CustomerJobs({ user, setUser }) {
         modalTitle: {
             fontSize: 24,
             fontWeight: 700,
-            color: "#111827",
+            color: "#0F1F1F",
             marginBottom: 24,
         },
         formGroup: {
@@ -286,14 +289,14 @@ export default function CustomerJobs({ user, setUser }) {
             display: "block",
             fontSize: 14,
             fontWeight: 600,
-            color: "#374151",
+            color: "#234848",
             marginBottom: 8,
         },
         input: {
             width: "100%",
             padding: "10px 12px",
             fontSize: 16,
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             borderRadius: 6,
             outline: "none",
             transition: "border-color .15s",
@@ -303,7 +306,7 @@ export default function CustomerJobs({ user, setUser }) {
             width: "100%",
             padding: "10px 12px",
             fontSize: 16,
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             borderRadius: 6,
             outline: "none",
             transition: "border-color .15s",
@@ -321,7 +324,7 @@ export default function CustomerJobs({ user, setUser }) {
             flex: 1,
             appearance: "none",
             border: "none",
-            background: "#4f46e5",
+            background: "#4DA3A2",
             padding: "12px 24px",
             borderRadius: 6,
             cursor: "pointer",
@@ -333,15 +336,19 @@ export default function CustomerJobs({ user, setUser }) {
         cancelButton: {
             flex: 1,
             appearance: "none",
-            border: "2px solid #e5e7eb",
+            border: "2px solid #99CFCE",
             background: "#ffffff",
             padding: "12px 24px",
             borderRadius: 6,
             cursor: "pointer",
             fontSize: 16,
             fontWeight: 600,
-            color: "#111827",
-            transition: "background .15s",
+            color: "#0F1F1F",
+            transition: "all .15s",
+        },
+        cancelButtonHover: {
+            background: "#f3f4f6",
+            borderColor: "#99CFCE",
         },
     };
 
@@ -423,7 +430,7 @@ export default function CustomerJobs({ user, setUser }) {
                                 >
                                     <div style={{
                                         ...styles.jobName,
-                                        color: jobHover === job.id ? "#ffffff" : "#111827"
+                                        color: jobHover === job.id ? "#ffffff" : "#0F1F1F"
                                     }}>
                                         {job.name}
                                     </div>
@@ -482,7 +489,12 @@ export default function CustomerJobs({ user, setUser }) {
                                 <button
                                     type="button"
                                     onClick={handleCloseForm}
-                                    style={styles.cancelButton}
+                                    style={{
+                                        ...styles.cancelButton,
+                                        ...(cancelHover ? styles.cancelButtonHover : {}),
+                                    }}
+                                    onMouseEnter={() => setCancelHover(true)}
+                                    onMouseLeave={() => setCancelHover(false)}
                                 >
                                     Cancel
                                 </button>
