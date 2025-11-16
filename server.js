@@ -9,7 +9,7 @@ const app = express();
 const corsOptions = {
   origin: [
     'http://localhost:3001',  // Local development
-    'http://localhost:3000'  // Your actual Render frontend URL
+    'https://constructioncrm-1.onrender.com'  // Render frontend URL
   ],
   credentials: true
 };

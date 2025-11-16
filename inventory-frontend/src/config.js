@@ -1,7 +1,6 @@
 // API Configuration
 // Use Render backend URL in production, localhost in development
-export const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
+export const BASE_URL = process.env.REACT_APP_API_URL || "https://constructioncrm-1.onrender.com";
 
-// Replace "your-app-name.onrender.com" with your actual Render URL
-// Or set REACT_APP_API_URL environment variable
+// For local development, set REACT_APP_API_URL=http://localhost:3000 in your environment
 
