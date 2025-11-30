@@ -15,11 +15,15 @@ export default function JobDetails({ user, setUser }) {
     const [cancelHover, setCancelHover] = useState(false);
     const [editHover, setEditHover] = useState(false);
     const [materialsHover, setMaterialsHover] = useState(false);
+    const [savedAreas, setSavedAreas] = useState([]);
+    const [hoveredArea, setHoveredArea] = useState(null);
+    const [toolHover, setToolHover] = useState(false);
 
     useEffect(() => {
         if (user?.id && jobId) {
             fetchJobDetails();
             fetchCustomerName();
+            fetchSavedAreas();
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user?.id, jobId]);
@@ -45,6 +49,39 @@ export default function JobDetails({ user, setUser }) {
             setCustomerName(customer?.name || "Customer");
         } catch (err) {
             console.error("Error fetching customer name:", err);
+        }
+    };
+
+    const fetchSavedAreas = async () => {
+        try {
+            const res = await fetch(`${BASE_URL}/areas/job/${jobId}/${user.id}`);
+            if (res.ok) {
+                const data = await res.json();
+                setSavedAreas(data);
+            }
+        } catch (err) {
+            console.error("Error fetching saved areas:", err);
+        }
+    };
+
+    const handleDeleteArea = async (areaId) => {
+        if (!window.confirm("Are you sure you want to delete this area?")) {
+            return;
+        }
+
+        try {
+            const res = await fetch(`${BASE_URL}/areas/${areaId}/${user.id}`, {
+                method: "DELETE",
+            });
+
+            if (res.ok) {
+                fetchSavedAreas(); // Refresh the list
+            } else {
+                alert("Failed to delete area");
+            }
+        } catch (err) {
+            console.error("Error deleting area:", err);
+            alert("Error deleting area");
         }
     };
 
@@ -78,6 +115,10 @@ export default function JobDetails({ user, setUser }) {
 
     const handleChange = (field, value) => {
         setEditedJob({ ...editedJob, [field]: value });
+    };
+
+    const handleToolClick = () => {
+        navigate('/tools/AreaCalculator');
     };
 
     const styles = {
@@ -126,7 +167,9 @@ export default function JobDetails({ user, setUser }) {
         },
         editButton: {
             appearance: "none",
-            border: "2px solid #4DA3A2",
+            borderWidth: 2,
+            borderStyle: "solid",
+            borderColor: "#4DA3A2",
             background: "#ffffff",
             padding: "8px 16px",
             borderRadius: 6,
@@ -158,7 +201,9 @@ export default function JobDetails({ user, setUser }) {
         },
         cancelButton: {
             appearance: "none",
-            border: "1px solid #99CFCE",
+            borderWidth: 1,
+            borderStyle: "solid",
+            borderColor: "#99CFCE",
             background: "#ffffff",
             padding: "8px 16px",
             borderRadius: 6,
@@ -173,7 +218,9 @@ export default function JobDetails({ user, setUser }) {
         },
         materialsButton: {
             appearance: "none",
-            border: "2px solid #4DA3A2",
+            borderWidth: 2,
+            borderStyle: "solid",
+            borderColor: "#4DA3A2",
             background: "#ffffff",
             padding: "8px 16px",
             borderRadius: 6,
@@ -187,6 +234,32 @@ export default function JobDetails({ user, setUser }) {
             background: "#4DA3A2",
             borderColor: "#4DA3A2",
             color: "#ffffff",
+        },
+        toolButton: {
+            appearance: "none",
+            borderWidth: 2,
+            borderStyle: "solid",
+            borderColor: "#4DA3A2",
+            background: "#4DA3A2",
+            padding: "8px 16px",
+            borderRadius: 8,
+            cursor: "pointer",
+            fontSize: 16,
+            fontWeight: 600,
+            color: "#ffffff",
+            transition: "all .15s ease",
+            marginBottom: 24,
+            width: "25%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+        },
+        toolButtonHover: {
+            background: "#3d8a89",
+            borderColor: "#4DA3A2",
+            transform: "translateY(-1px)",
+            boxShadow: "0 4px 12px rgba(77, 163, 162, 0.4)",
         },
         logoutBtn: {
             appearance: "none",
@@ -306,6 +379,67 @@ export default function JobDetails({ user, setUser }) {
         fullWidth: {
             gridColumn: "1 / -1",
         },
+        areasGrid: {
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+            gap: 16,
+            marginTop: 16,
+        },
+        areaCard: {
+            background: "#f9fafb",
+            padding: 16,
+            borderRadius: 8,
+            border: "2px solid #99CFCE",
+            position: "relative",
+            cursor: "pointer",
+            transition: "all .15s ease",
+        },
+        areaCardHover: {
+            background: "#E8F5F4",
+            borderColor: "#4DA3A2",
+            transform: "translateY(-2px)",
+            boxShadow: "0 4px 12px rgba(77, 163, 162, 0.2)",
+        },
+        areaCardName: {
+            fontSize: 16,
+            fontWeight: 600,
+            color: "#0F1F1F",
+            marginBottom: 8,
+        },
+        areaCardValue: {
+            fontSize: 24,
+            fontWeight: 700,
+            color: "#4DA3A2",
+            marginBottom: 4,
+        },
+        areaCardUnit: {
+            fontSize: 14,
+            color: "#6b7280",
+            marginBottom: 8,
+        },
+        areaCardDate: {
+            fontSize: 12,
+            color: "#6b7280",
+        },
+        deleteAreaButton: {
+            position: "absolute",
+            top: 8,
+            right: 8,
+            appearance: "none",
+            border: "none",
+            background: "transparent",
+            color: "#991b1b",
+            cursor: "pointer",
+            fontSize: 18,
+            padding: 4,
+            lineHeight: 1,
+        },
+        emptyAreas: {
+            textAlign: "center",
+            padding: 32,
+            color: "#6b7280",
+            fontSize: 14,
+        },
     };
 
     const getStatusStyle = (status) => {
@@ -359,10 +493,23 @@ export default function JobDetails({ user, setUser }) {
             <header style={styles.header}>
                 <div style={styles.headerLeft}>
                     <button
-                        onClick={() => navigate(`/customer/${customerId}/jobs`)}
+                        onClick={() => navigate(-1)}
                         style={styles.backButton}
                     >
-                        ← Back to Jobs
+                        ← Back
+                    </button>
+                    <button
+                        onClick={() => navigate(`../`)}
+                        style={styles.backButton}
+                    >
+                        <svg 
+                            width="16" 
+                            height="16" 
+                            viewBox="0 0 24 24" 
+                            fill="currentColor"
+                        >
+                            <path d="M12 3l9 8h-3v9h-12v-9h-3l9-8z" />
+                        </svg>
                     </button>
                     <div style={styles.title}>{job.name}</div>
                 </div>
@@ -450,7 +597,7 @@ export default function JobDetails({ user, setUser }) {
                                     </select>
                                 ) : (
                                     <span style={{ ...styles.statusBadge, ...getStatusStyle(job.status) }}>
-                                        {job.status.replace("_", " ")}
+                                        {job.status ? job.status.replace("_", " ") : "pending"}
                                     </span>
                                 )}
                             </div>
@@ -679,6 +826,79 @@ export default function JobDetails({ user, setUser }) {
                                 )}
                             </div>
                         </div>
+                    </div>
+
+                    {/* Saved Areas Section */}
+                    <div style={styles.section}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                            <h2 style={{ ...styles.sectionTitle, marginBottom: 0, borderBottom: "none", paddingBottom: 0 }}>
+                                Calculated Areas
+                            </h2>
+                            <button 
+                                onClick={handleToolClick}
+                                style={{
+                                    ...styles.toolButton, 
+                                    ...(toolHover ? styles.toolButtonHover : {}),
+                                }}
+                                onMouseEnter={() => setToolHover(true)}
+                                onMouseLeave={() => setToolHover(false)}
+                            >
+                                Area Calculator
+                            </button>
+                        </div>
+                        {savedAreas.length > 0 ? (
+                            <div style={styles.areasGrid}>
+                                {savedAreas.map((area) => (
+                                    <div 
+                                        key={area.id} 
+                                        style={{
+                                            ...styles.areaCard,
+                                            ...(hoveredArea === area.id ? styles.areaCardHover : {}),
+                                        }}
+                                        onClick={() => {
+                                            // Parse shape_data if it's a string
+                                            const shapeData = typeof area.shape_data === 'string' 
+                                                ? JSON.parse(area.shape_data) 
+                                                : area.shape_data;
+                                            
+                                            navigate('/tools/AreaCalculator', {
+                                                state: {
+                                                    areaData: {
+                                                        ...area,
+                                                        shape_data: shapeData
+                                                    }
+                                                }
+                                            });
+                                        }}
+                                        onMouseEnter={() => setHoveredArea(area.id)}
+                                        onMouseLeave={() => setHoveredArea(null)}
+                                    >
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleDeleteArea(area.id);
+                                            }}
+                                            style={styles.deleteAreaButton}
+                                            title="Delete area"
+                                        >
+                                            ✕
+                                        </button>
+                                        <div style={styles.areaCardName}>{area.area_name}</div>
+                                        <div style={styles.areaCardValue}>
+                                            {parseFloat(area.area_value).toFixed(2)}
+                                        </div>
+                                        <div style={styles.areaCardUnit}>{area.unit}</div>
+                                        <div style={styles.areaCardDate}>
+                                            {new Date(area.created_at).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            <div style={styles.emptyAreas}>
+                                No areas calculated yet. Use the Area Calculator tool to add measurements.
+                            </div>
+                        )}
                     </div>
                 </div>
             </main>

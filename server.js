@@ -5,30 +5,48 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS configuration - allow frontend to access backend
+// CORS configuration - allow frontend and mobile app to access backend
 const corsOptions = {
   origin: [
-    'http://localhost:3001',  // Local development
-    'https://constructioncrm-1.onrender.com'  // Render frontend URL
+    'http://localhost:3001',  // Web frontend local development
+    'http://localhost:3000',  // Render frontend URL
+    'http://localhost:19000', // Expo mobile app (default)
+    'http://localhost:19001', // Expo mobile app (alternate)
+    'http://localhost:19002', // Expo mobile app (alternate)
+    'http://192.168.1.*',     // Local network for mobile testing
+    'exp://*'                 // Expo development URLs
   ],
   credentials: true
 };
-app.use(cors(corsOptions));
+// For mobile development, allow all origins temporarily
+// In production, restrict to your actual domains
+if (process.env.NODE_ENV !== 'production') {
+  app.use(cors());
+} else {
+  app.use(cors(corsOptions));
+}
 app.use(express.json());
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 });
 
-db.connect(err => {
+// Test the connection
+db.getConnection((err, connection) => {
   if (err) {
     console.error('Error connecting to MySQL:', err.message);
     process.exit(1);
   }
   console.log('✅ Successfully connected to MySQL database!');
+  connection.release();
 });
 
 // -------------------------
@@ -363,6 +381,71 @@ app.delete('/inventory/:id', (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ message: 'Item deleted' });
   });
+});
+
+// -------------------------
+// AREA ROUTES
+// -------------------------
+
+// Save area to a job
+app.post('/areas', (req, res) => {
+  const { user_id, job_id, customer_id, area_name, area_value, unit, shape_data } = req.body;
+  
+  db.query(
+    'INSERT INTO job_areas (user_id, job_id, customer_id, area_name, area_value, unit, shape_data, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
+    [user_id, job_id, customer_id, area_name, area_value, unit, shape_data],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Area saved successfully', areaId: results.insertId });
+    }
+  );
+});
+
+// Get all areas for a user
+app.get('/areas/user/:userId', (req, res) => {
+  const { userId } = req.params;
+  
+  db.query(
+    `SELECT ja.*, j.name as job_name, c.name as customer_name 
+     FROM job_areas ja 
+     LEFT JOIN jobs j ON ja.job_id = j.id 
+     LEFT JOIN customers c ON ja.customer_id = c.id 
+     WHERE ja.user_id = ? 
+     ORDER BY ja.created_at DESC`,
+    [userId],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    }
+  );
+});
+
+// Get all areas for a job
+app.get('/areas/job/:jobId/:userId', (req, res) => {
+  const { jobId, userId } = req.params;
+  
+  db.query(
+    'SELECT * FROM job_areas WHERE job_id = ? AND user_id = ? ORDER BY created_at DESC',
+    [jobId, userId],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    }
+  );
+});
+
+// Delete an area
+app.delete('/areas/:id/:userId', (req, res) => {
+  const { id, userId } = req.params;
+  
+  db.query(
+    'DELETE FROM job_areas WHERE id = ? AND user_id = ?',
+    [id, userId],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Area deleted' });
+    }
+  );
 });
 
 // -------------------------

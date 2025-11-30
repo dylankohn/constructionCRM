@@ -667,10 +667,23 @@ export default function JobMaterials({ user, setUser }) {
             <header style={styles.header}>
                 <div style={styles.headerLeft}>
                     <button
-                        onClick={() => navigate(`/customer/${customerId}/job/${jobId}`)}
+                        onClick={() => navigate(-1)}
                         style={styles.backButton}
                     >
-                        ← Back to Job
+                        ← Back
+                    </button>
+                    <button
+                        onClick={() => navigate(`../`)}
+                        style={styles.backButton}
+                    >
+                        <svg 
+                            width="16" 
+                            height="16" 
+                            viewBox="0 0 24 24" 
+                            fill="currentColor"
+                        >
+                            <path d="M12 3l9 8h-3v9h-12v-9h-3l9-8z" />
+                        </svg>
                     </button>
                     <div style={styles.title}>{jobName} - Materials</div>
                 </div>

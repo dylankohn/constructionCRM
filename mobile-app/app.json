@@ -1,0 +1,48 @@
+{
+  "expo": {
+    "name": "Construction CRM",
+    "slug": "construction-crm-mobile",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#234848"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.constructioncrm.mobile",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "This app needs access to your location to calculate areas on the map."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#234848"
+      },
+      "package": "com.constructioncrm.mobile",
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDoISlay7KTqDHeTFIjyaFGdIPfPFAuYAg"
+        }
+      }
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "apiUrl": "http://10.34.66.99:3000"
+    }
+  }
+}
+
