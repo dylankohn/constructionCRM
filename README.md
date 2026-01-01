@@ -14,8 +14,10 @@ This is designed for small to medium construction companies looking to streamlin
 - **Cost Management**: Real-time cost tracking and budget monitoring
 - **User Authentication**: Secure user login and data management
 
+I used the existing app to transition this to a mobile app using React Native. The mobile app allows users to access their construction management tools on the go, providing flexibility and convenience. For the development of the mobile app, I utilized Expo to simplify the build and deployment process across both iOS and Android platforms.
 
-[Software Demo Video](https://www.youtube.com/watch?v=rRU4xnpOrPo)
+
+[Software Demo Video](https://www.youtube.com/watch?v=m5lsmiaPnPI)
 
 # New Feature: Intelligent Material Dimensions
 
@@ -78,10 +80,14 @@ The system also auto-suggests appropriate units (board feet for lumber, linear f
 - VSCode
 - Live Server Extension
 - Git & GitHub
+- Expo
+- React Native
 
 # Useful Websites
 
 - [AWS RDS Docs](https://docs.aws.amazon.com/AmazonRDS/latest/UserGuide/Welcome.html)
+- [React Native Docs](https://reactnative.dev/docs/getting-started)
+- [Expo Docs](https://docs.expo.dev/)
 - [YouTube - AWS RDS Tutorials](https://www.youtube.com/watch?v=AiuTdIrUoT4)
 - [W3 Schools](https://www.w3schools.com/)
 - [ChatGPT](https://chat.openai.com/)
@@ -146,7 +152,7 @@ cd constructionCRM
 
 # Future Work
 
-- Cross user collaboration
-- Mobile adaptation
-- Advanced reporting features
-- Integration with other construction management tools
+- Implement push notifications for job updates and reminders
+- Add offline capabilities for job site access without internet
+- Integrate with third-party services for enhanced functionality
+- Optimize performance for larger datasets and complex projects

@@ -5,17 +5,34 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS configuration - allow frontend to access backend
+// CORS configuration - allow frontend and mobile app to access backend
 const corsOptions = {
   origin: [
+<<<<<<< HEAD
     'http://localhost:3001',  // Local development
     'http://localhost:3000',  // Local development alternate
     process.env.FRONTEND_URL, // Production frontend URL (set in .env)
     /^http:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/  // Allow any IP address (for EC2)
   ].filter(Boolean),  // Remove undefined values
+=======
+    'http://localhost:3001',  // Web frontend local development
+    'http://localhost:3000',  // Render frontend URL
+    'http://localhost:19000', // Expo mobile app (default)
+    'http://localhost:19001', // Expo mobile app (alternate)
+    'http://localhost:19002', // Expo mobile app (alternate)
+    'http://192.168.1.*',     // Local network for mobile testing
+    'exp://*'                 // Expo development URLs
+  ],
+>>>>>>> 4026148b9a6f984fba20efc63521f82996928ca3
   credentials: true
 };
-app.use(cors(corsOptions));
+// For mobile development, allow all origins temporarily
+// In production, restrict to your actual domains
+if (process.env.NODE_ENV !== 'production') {
+  app.use(cors());
+} else {
+  app.use(cors(corsOptions));
+}
 app.use(express.json());
 
 const db = mysql.createPool({
