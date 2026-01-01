@@ -30,9 +30,14 @@ echo -e "${BLUE}📦 Building frontend...${NC}"
 cd inventory-frontend
 npm install
 
-# Build frontend
+# Get EC2 public IP for frontend build
+echo -e "${BLUE}🌐 Detecting EC2 public IP...${NC}"
+EC2_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || echo "localhost")
+echo -e "${BLUE}   Using API URL: http://$EC2_IP${NC}"
+
+# Build frontend with environment variable
 echo -e "${BLUE}🏗️  Building React app...${NC}"
-npm run build
+REACT_APP_API_URL=http://$EC2_IP npm run build
 
 # Restart Nginx
 echo -e "${BLUE}🔄 Restarting Nginx...${NC}"

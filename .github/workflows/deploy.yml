@@ -27,7 +27,12 @@ jobs:
           # Update frontend
           cd inventory-frontend
           npm install
-          npm run build
+          
+          # Get EC2 public IP for frontend build
+          EC2_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
+          
+          # Build with environment variable
+          REACT_APP_API_URL=http://$EC2_IP npm run build
           
           # Restart nginx
           sudo systemctl restart nginx

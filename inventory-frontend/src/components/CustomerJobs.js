@@ -529,4 +529,3 @@ export default function CustomerJobs({ user, setUser }) {
         </div>
     );
 }
-

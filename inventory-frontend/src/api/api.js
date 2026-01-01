@@ -1,9 +1,11 @@
 // src/api/api.js
-// Use environment variable or fallback to localhost
-const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
+import { BASE_URL } from '../config.js';
 
 export const getUsers = async () => {
   const res = await fetch(`${BASE_URL}/users`);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
   return res.json();
 };
 
@@ -13,11 +15,17 @@ export const addUser = async (username, password) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ username, password }),
   });
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
   return res.json();
 };
 
 export const getInventory = async (userId) => {
   const res = await fetch(`${BASE_URL}/inventory/${userId}`);
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
   return res.json();
 };
 
@@ -27,5 +35,8 @@ export const addInventory = async (user_id, item_name, quantity) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ user_id, item_name, quantity }),
   });
+  if (!res.ok) {
+    throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+  }
   return res.json();
 };

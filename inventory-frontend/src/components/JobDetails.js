@@ -499,8 +499,9 @@ export default function JobDetails({ user, setUser }) {
                         ← Back
                     </button>
                     <button
-                        onClick={() => navigate(`../`)}
+                        onClick={() => navigate('/')}
                         style={styles.backButton}
+                        title="Go to Dashboard"
                     >
                         <svg 
                             width="16" 
@@ -508,7 +509,7 @@ export default function JobDetails({ user, setUser }) {
                             viewBox="0 0 24 24" 
                             fill="currentColor"
                         >
-                            <path d="M12 3l9 8h-3v9h-12v-9h-3l9-8z" />
+                            <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
                         </svg>
                     </button>
                     <div style={styles.title}>{job.name}</div>
