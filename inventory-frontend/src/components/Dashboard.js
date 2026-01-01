@@ -7,6 +7,7 @@ export default function Dashboard({ user, setUser }) {
     const [hover, setHover] = useState(false);
     const [customerHover, setCustomerHover] = useState(null);
     const [materialHover, setMaterialHover] = useState(null);
+    const [toolHover, setToolHover] = useState(false);
     const [addCustomerHover, setAddCustomerHover] = useState(false);
     const [cancelHover, setCancelHover] = useState(false);
     const [showAddCustomerForm, setShowAddCustomerForm] = useState(false);
@@ -27,9 +28,15 @@ export default function Dashboard({ user, setUser }) {
         try {
             const res = await fetch(`${BASE_URL}/customers/${user.id}`);
             const data = await res.json();
-            setCustomers(data);
+            if (Array.isArray(data)) {
+                setCustomers(data);
+            } else {
+                console.error("Error fetching customers:", data.error || "Invalid response");
+                setCustomers([]);
+            }
         } catch (err) {
             console.error("Error fetching customers:", err);
+            setCustomers([]);
         }
     };
 
@@ -39,22 +46,32 @@ export default function Dashboard({ user, setUser }) {
             const customersRes = await fetch(`${BASE_URL}/customers/${user.id}`);
             const customersData = await customersRes.json();
             
+            if (!Array.isArray(customersData)) {
+                console.error("Error fetching customers for jobs:", customersData.error || "Invalid response");
+                setJobs([]);
+                return;
+            }
+            
             // Fetch jobs for each customer
             const allJobs = [];
             for (const customer of customersData) {
                 const jobsRes = await fetch(`${BASE_URL}/jobs/customer/${customer.id}/${user.id}`);
                 const jobsData = await jobsRes.json();
-                // Add customer info to each job
-                jobsData.forEach(job => {
-                    allJobs.push({
-                        ...job,
-                        customerName: customer.name
+                
+                // Add customer info to each job only if jobsData is an array
+                if (Array.isArray(jobsData)) {
+                    jobsData.forEach(job => {
+                        allJobs.push({
+                            ...job,
+                            customerName: customer.name
+                        });
                     });
-                });
+                }
             }
             setJobs(allJobs);
         } catch (err) {
             console.error("Error fetching jobs:", err);
+            setJobs([]);
         }
     };
 
@@ -104,7 +121,7 @@ export default function Dashboard({ user, setUser }) {
         },
         gridContainer: {
             display: "grid",
-            gridTemplateColumns: "1fr 1fr",
+            gridTemplateColumns: "1fr 1fr 1fr",
             gap: 24,
             marginTop: 24,
         },
@@ -130,7 +147,9 @@ export default function Dashboard({ user, setUser }) {
         },
         actionButton: {
             appearance: "none",
-            border: "2px solid #99CFCE",
+            borderWidth: 2,
+            borderStyle: "solid",
+            borderColor: "#99CFCE",
             background: "#ffffff",
             padding: "20px 24px",
             borderRadius: 8,
@@ -150,7 +169,9 @@ export default function Dashboard({ user, setUser }) {
         },
         materialButton: {
             appearance: "none",
-            border: "2px solid #99CFCE",
+            borderWidth: 2,
+            borderStyle: "solid",
+            borderColor: "#99CFCE",
             background: "#ffffff",
             padding: "20px 24px",
             borderRadius: 8,
@@ -173,7 +194,9 @@ export default function Dashboard({ user, setUser }) {
         },
         addCustomerButton: {
             appearance: "none",
-            border: "2px solid #4DA3A2",
+            borderWidth: 2,
+            borderStyle: "solid",
+            borderColor: "#4DA3A2",
             background: "#4DA3A2",
             padding: "16px 32px",
             borderRadius: 8,
@@ -190,6 +213,32 @@ export default function Dashboard({ user, setUser }) {
             gap: 8,
         },
         addCustomerButtonHover: {
+            background: "#3d8a89",
+            borderColor: "#4DA3A2",
+            transform: "translateY(-1px)",
+            boxShadow: "0 4px 12px rgba(77, 163, 162, 0.4)",
+        },
+        toolButton: {
+            appearance: "none",
+            borderWidth: 2,
+            borderStyle: "solid",
+            borderColor: "#4DA3A2",
+            background: "#4DA3A2",
+            padding: "16px 32px",
+            borderRadius: 8,
+            cursor: "pointer",
+            fontSize: 16,
+            fontWeight: 600,
+            color: "#ffffff",
+            transition: "all .15s ease",
+            marginBottom: 24,
+            width: "100%",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+        },
+        toolButtonHover: {
             background: "#3d8a89",
             borderColor: "#4DA3A2",
             transform: "translateY(-1px)",
@@ -290,6 +339,10 @@ export default function Dashboard({ user, setUser }) {
 
     const handleMaterialClick = (jobId, customerId) => {
         navigate(`/customer/${customerId}/job/${jobId}/materials`);
+    };
+
+    const handleToolClick = () => {
+        navigate(`/tools/AreaCalculator`);
     };
 
     const handleAddCustomer = () => {
@@ -417,6 +470,24 @@ export default function Dashboard({ user, setUser }) {
                                     </button>
                                 ))
                             )}
+                        </div>
+                    </div>
+
+                    {/* Tools Box */}
+                    <div style={styles.box}>
+                        <h2 style={styles.boxTitle}>Tools</h2>
+                        <div style={styles.buttonGrid}>
+                            <button 
+                            onClick={handleToolClick}
+                            style={{
+                                ...styles.toolButton, 
+                                ...(toolHover ? styles.toolButtonHover : {}),
+                                }}
+                                onMouseEnter={() => setToolHover(true)}
+                                onMouseLeave={() => setToolHover(false)}
+                            >
+                                Area Calculator
+                            </button>
                         </div>
                     </div>
                 </div>

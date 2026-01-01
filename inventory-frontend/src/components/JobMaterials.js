@@ -30,6 +30,21 @@ export default function JobMaterials({ user, setUser }) {
         notes: ""
     });
     const [totalCost, setTotalCost] = useState(0);
+    const [detectedMaterialType, setDetectedMaterialType] = useState(null);
+    const [materialDimensions, setMaterialDimensions] = useState({
+        length: "",
+        width: "",
+        height: "",
+        thickness: "",
+        diameter: ""
+    });
+    const [dimensionUnits, setDimensionUnits] = useState({
+        length: "feet",
+        width: "inches",
+        height: "inches",
+        thickness: "inches",
+        diameter: "inches"
+    });
 
     useEffect(() => {
         if (user?.id && jobId) {
@@ -65,6 +80,55 @@ export default function JobMaterials({ user, setUser }) {
         }
     };
 
+    // Material type detection patterns
+    const materialTypes = {
+        lumber: {
+            keywords: ['lumber', 'wood', 'timber', '2x4', '2x6', '2x8', '4x4', 'plywood', 'board'],
+            fields: ['thickness', 'width', 'length'],
+            defaultUnit: 'pieces'
+        },
+        pipe: {
+            keywords: ['pipe', 'pvc', 'copper', 'pex', 'conduit'],
+            fields: ['diameter', 'length'],
+            defaultUnit: 'linear feet'
+        },
+        concrete: {
+            keywords: ['concrete', 'cement', 'mortar', 'grout'],
+            fields: ['height', 'width', 'length'],
+            defaultUnit: 'cubic yards'
+        },
+        drywall: {
+            keywords: ['drywall', 'sheetrock', 'gypsum'],
+            fields: ['thickness', 'width', 'length'],
+            defaultUnit: 'sheets'
+        },
+        paint: {
+            keywords: ['paint', 'stain', 'primer', 'sealer'],
+            fields: [],
+            defaultUnit: 'gallons'
+        },
+        roofing: {
+            keywords: ['shingle', 'roofing', 'tile', 'membrane'],
+            fields: ['width', 'length'],
+            defaultUnit: 'squares'
+        },
+        insulation: {
+            keywords: ['insulation', 'foam', 'fiberglass'],
+            fields: ['thickness', 'width', 'length'],
+            defaultUnit: 'square feet'
+        }
+    };
+
+    const detectMaterialType = (materialName) => {
+        const lowerName = materialName.toLowerCase();
+        for (const [type, config] of Object.entries(materialTypes)) {
+            if (config.keywords.some(keyword => lowerName.includes(keyword))) {
+                return { type, config };
+            }
+        }
+        return null;
+    };
+
     const resetForm = () => {
         setFormData({
             material_name: "",
@@ -81,6 +145,21 @@ export default function JobMaterials({ user, setUser }) {
             notes: ""
         });
         setEditingMaterial(null);
+        setDetectedMaterialType(null);
+        setMaterialDimensions({
+            length: "",
+            width: "",
+            height: "",
+            thickness: "",
+            diameter: ""
+        });
+        setDimensionUnits({
+            length: "feet",
+            width: "inches",
+            height: "inches",
+            thickness: "inches",
+            diameter: "inches"
+        });
     };
 
     const handleAdd = () => {
@@ -103,6 +182,49 @@ export default function JobMaterials({ user, setUser }) {
             actual_delivery: material.actual_delivery || "",
             notes: material.notes || ""
         });
+        
+        // Load material type and dimensions if they exist
+        if (material.material_type) {
+            const detected = detectMaterialType(material.material_name);
+            setDetectedMaterialType(detected);
+        }
+        
+        if (material.dimensions) {
+            const dims = typeof material.dimensions === 'string' 
+                ? JSON.parse(material.dimensions) 
+                : material.dimensions;
+            
+            const loadedDimensions = {
+                length: "",
+                width: "",
+                height: "",
+                thickness: "",
+                diameter: ""
+            };
+            const loadedUnits = {
+                length: "feet",
+                width: "inches",
+                height: "inches",
+                thickness: "inches",
+                diameter: "inches"
+            };
+            
+            // Load dimension values and units
+            Object.keys(dims).forEach(key => {
+                if (typeof dims[key] === 'object' && dims[key].value) {
+                    // New format with value and unit
+                    loadedDimensions[key] = dims[key].value;
+                    loadedUnits[key] = dims[key].unit || "inches";
+                } else {
+                    // Old format - just the value
+                    loadedDimensions[key] = dims[key];
+                }
+            });
+            
+            setMaterialDimensions(loadedDimensions);
+            setDimensionUnits(loadedUnits);
+        }
+        
         setEditingMaterial(material);
         setShowAddForm(true);
     };
@@ -115,11 +237,26 @@ export default function JobMaterials({ user, setUser }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         
+        // Prepare dimensions object - only include non-empty values with units
+        const dimensionsToSave = {};
+        if (detectedMaterialType) {
+            detectedMaterialType.config.fields.forEach(field => {
+                if (materialDimensions[field]) {
+                    dimensionsToSave[field] = {
+                        value: materialDimensions[field],
+                        unit: dimensionUnits[field]
+                    };
+                }
+            });
+        }
+        
         const payload = {
             ...formData,
             user_id: user.id,
             job_id: parseInt(jobId),
             customer_id: parseInt(customerId),
+            material_type: detectedMaterialType ? detectedMaterialType.type : null,
+            dimensions: Object.keys(dimensionsToSave).length > 0 ? dimensionsToSave : null,
         };
 
         try {
@@ -168,6 +305,68 @@ export default function JobMaterials({ user, setUser }) {
 
     const handleChange = (field, value) => {
         setFormData({ ...formData, [field]: value });
+        
+        // Detect material type when material name changes
+        if (field === "material_name") {
+            const detected = detectMaterialType(value);
+            if (detected) {
+                setDetectedMaterialType(detected);
+                // Auto-set unit if not already set
+                if (!formData.unit) {
+                    setFormData(prev => ({ ...prev, unit: detected.config.defaultUnit }));
+                }
+            } else {
+                setDetectedMaterialType(null);
+            }
+        }
+    };
+
+    const handleDimensionChange = (field, value) => {
+        setMaterialDimensions({ ...materialDimensions, [field]: value });
+        
+        // Auto-update description with dimensions
+        if (detectedMaterialType) {
+            const dims = { ...materialDimensions, [field]: value };
+            const units = dimensionUnits;
+            const dimensionParts = [];
+            
+            detectedMaterialType.config.fields.forEach(f => {
+                if (dims[f]) {
+                    dimensionParts.push(`${f}: ${dims[f]} ${units[f]}`);
+                }
+            });
+            
+            if (dimensionParts.length > 0) {
+                setFormData(prev => ({
+                    ...prev,
+                    description: `Dimensions: ${dimensionParts.join(', ')}`
+                }));
+            }
+        }
+    };
+
+    const handleDimensionUnitChange = (field, unit) => {
+        setDimensionUnits({ ...dimensionUnits, [field]: unit });
+        
+        // Auto-update description with new unit
+        if (detectedMaterialType) {
+            const dims = materialDimensions;
+            const units = { ...dimensionUnits, [field]: unit };
+            const dimensionParts = [];
+            
+            detectedMaterialType.config.fields.forEach(f => {
+                if (dims[f]) {
+                    dimensionParts.push(`${f}: ${dims[f]} ${units[f]}`);
+                }
+            });
+            
+            if (dimensionParts.length > 0) {
+                setFormData(prev => ({
+                    ...prev,
+                    description: `Dimensions: ${dimensionParts.join(', ')}`
+                }));
+            }
+        }
     };
 
     const styles = {
@@ -667,10 +866,23 @@ export default function JobMaterials({ user, setUser }) {
             <header style={styles.header}>
                 <div style={styles.headerLeft}>
                     <button
-                        onClick={() => navigate(`/customer/${customerId}/job/${jobId}`)}
+                        onClick={() => navigate(-1)}
                         style={styles.backButton}
                     >
-                        ← Back to Job
+                        ← Back
+                    </button>
+                    <button
+                        onClick={() => navigate(`../`)}
+                        style={styles.backButton}
+                    >
+                        <svg 
+                            width="16" 
+                            height="16" 
+                            viewBox="0 0 24 24" 
+                            fill="currentColor"
+                        >
+                            <path d="M12 3l9 8h-3v9h-12v-9h-3l9-8z" />
+                        </svg>
                     </button>
                     <div style={styles.title}>{jobName} - Materials</div>
                 </div>
@@ -977,6 +1189,78 @@ export default function JobMaterials({ user, setUser }) {
                                         required
                                     />
                                 </div>
+
+                                {/* Dynamic dimension fields based on material type */}
+                                {detectedMaterialType && detectedMaterialType.config.fields.length > 0 && (
+                                    <div style={{ 
+                                        ...styles.fullWidth, 
+                                        background: "#f0f9ff",
+                                        padding: 20,
+                                        borderRadius: 8,
+                                        border: "2px solid #99CFCE"
+                                    }}>
+                                        <div style={{ 
+                                            fontSize: 15, 
+                                            fontWeight: 600, 
+                                            color: "#234848", 
+                                            marginBottom: 12,
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: 8
+                                        }}>
+                                            <span style={{ fontSize: 18 }}>📏</span>
+                                            Dimensions
+                                        </div>
+                                        <div style={{
+                                            display: "grid",
+                                            gridTemplateColumns: `repeat(${Math.min(detectedMaterialType.config.fields.length, 3)}, 1fr)`,
+                                            gap: 12
+                                        }}>
+                                            {detectedMaterialType.config.fields.map(field => (
+                                                <div key={field}>
+                                                    <label style={{
+                                                        ...styles.label,
+                                                        fontSize: 13,
+                                                        marginBottom: 6
+                                                    }}>
+                                                        {field.charAt(0).toUpperCase() + field.slice(1)}
+                                                    </label>
+                                                    <div style={{ display: "flex", gap: 6 }}>
+                                                        <input
+                                                            type="number"
+                                                            step="0.25"
+                                                            value={materialDimensions[field]}
+                                                            onChange={(e) => handleDimensionChange(field, e.target.value)}
+                                                            style={{
+                                                                ...styles.input,
+                                                                fontSize: 14,
+                                                                flex: 1
+                                                            }}
+                                                            placeholder="0"
+                                                        />
+                                                        <select
+                                                            value={dimensionUnits[field]}
+                                                            onChange={(e) => handleDimensionUnitChange(field, e.target.value)}
+                                                            style={{
+                                                                ...styles.select,
+                                                                fontSize: 13,
+                                                                width: "auto",
+                                                                minWidth: 80
+                                                            }}
+                                                        >
+                                                            <option value="inches">in</option>
+                                                            <option value="feet">ft</option>
+                                                            <option value="yards">yd</option>
+                                                            <option value="millimeters">mm</option>
+                                                            <option value="centimeters">cm</option>
+                                                            <option value="meters">m</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
 
                                 <div style={{ ...styles.formGroup, ...styles.fullWidth }}>
                                     <label style={styles.label}>Description</label>

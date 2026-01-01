@@ -1,5 +1,6 @@
 // src/api/api.js
-const BASE_URL = "http://localhost:3000";
+// Use environment variable or fallback to localhost
+const BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:3000";
 
 export const getUsers = async () => {
   const res = await fetch(`${BASE_URL}/users`);

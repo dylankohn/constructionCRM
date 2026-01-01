@@ -176,7 +176,9 @@ export default function CustomerJobs({ user, setUser }) {
         },
         addJobButton: {
             appearance: "none",
-            border: "2px solid #4DA3A2",
+            borderWidth: 2,
+            borderStyle: "solid",
+            borderColor: "#4DA3A2",
             background: "#4DA3A2",
             padding: "16px 32px",
             borderRadius: 8,
@@ -205,7 +207,9 @@ export default function CustomerJobs({ user, setUser }) {
         },
         jobCard: {
             appearance: "none",
-            border: "2px solid #99CFCE",
+            borderWidth: 2,
+            borderStyle: "solid",
+            borderColor: "#99CFCE",
             background: "#ffffff",
             padding: "20px",
             borderRadius: 8,
@@ -372,7 +376,7 @@ export default function CustomerJobs({ user, setUser }) {
             <header style={styles.header}>
                 <div style={styles.headerLeft}>
                     <button
-                        onClick={() => navigate("/")}
+                        onClick={() => navigate(-1)}
                         style={{
                             ...styles.backButton,
                             ...(hover ? styles.backButtonHover : {}),
@@ -381,6 +385,19 @@ export default function CustomerJobs({ user, setUser }) {
                         onMouseLeave={() => setHover(false)}
                     >
                         ← Back
+                    </button>
+                    <button
+                        onClick={() => navigate(`../`)}
+                        style={styles.backButton}
+                    >
+                        <svg 
+                            width="16" 
+                            height="16" 
+                            viewBox="0 0 24 24" 
+                            fill="currentColor"
+                        >
+                            <path d="M12 3l9 8h-3v9h-12v-9h-3l9-8z" />
+                        </svg>
                     </button>
                     <div style={styles.title}>
                         {customerName} - Jobs

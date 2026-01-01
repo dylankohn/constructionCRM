@@ -5,6 +5,7 @@ import Dashboard from "./components/Dashboard";
 import CustomerJobs from "./components/CustomerJobs";
 import JobDetails from "./components/JobDetails";
 import JobMaterials from "./components/JobMaterials";
+import AreaCalculator from "./tools/AreaCalculator";
 import "./styles.css";
 
 function App() {
@@ -74,6 +75,10 @@ function App() {
         <Route
           path="/customer/:customerId/job/:jobId/materials"
           element={user ? <JobMaterials user={user} setUser={handleSetUser} /> : <Navigate to="/login" />}
+        />
+        <Route
+          path="/tools/AreaCalculator"
+          element={user ? <AreaCalculator user={user} setUser={handleSetUser} /> : <Navigate to="/login" />}
         />
       </Routes>
     </Router>

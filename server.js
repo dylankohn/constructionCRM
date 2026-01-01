@@ -9,26 +9,35 @@ const app = express();
 const corsOptions = {
   origin: [
     'http://localhost:3001',  // Local development
-    'https://constructioncrm-1.onrender.com'  // Render frontend URL
-  ],
+    'http://localhost:3000',  // Local development alternate
+    process.env.FRONTEND_URL, // Production frontend URL (set in .env)
+    /^http:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/  // Allow any IP address (for EC2)
+  ].filter(Boolean),  // Remove undefined values
   credentials: true
 };
 app.use(cors(corsOptions));
 app.use(express.json());
 
-const db = mysql.createConnection({
+const db = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0,
+  enableKeepAlive: true,
+  keepAliveInitialDelay: 0
 });
 
-db.connect(err => {
+// Test the connection
+db.getConnection((err, connection) => {
   if (err) {
     console.error('Error connecting to MySQL:', err.message);
     process.exit(1);
   }
   console.log('✅ Successfully connected to MySQL database!');
+  connection.release();
 });
 
 // -------------------------
@@ -234,12 +243,16 @@ app.get('/materials/job/:jobId/:userId', (req, res) => {
 
 // Add a new material to a job
 app.post('/materials', (req, res) => {
-  const { user_id, job_id, customer_id, material_name, description, quantity, unit, unit_cost, status, location, supplier, order_date, expected_delivery, actual_delivery, notes } = req.body;
+  const { user_id, job_id, customer_id, material_name, description, quantity, unit, unit_cost, status, location, supplier, order_date, expected_delivery, actual_delivery, notes, material_type, dimensions } = req.body;
+  
+  // Convert dimensions object to JSON string if provided
+  const dimensionsJson = dimensions ? JSON.stringify(dimensions) : null;
+  
   db.query(
     `INSERT INTO job_materials 
-    (user_id, job_id, customer_id, material_name, description, quantity, unit, unit_cost, status, location, supplier, order_date, expected_delivery, actual_delivery, notes) 
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-    [user_id, job_id, customer_id, material_name, description || null, quantity, unit || null, unit_cost || null, status || 'needed', location || null, supplier || null, order_date || null, expected_delivery || null, actual_delivery || null, notes || null],
+    (user_id, job_id, customer_id, material_name, material_type, description, quantity, unit, unit_cost, status, location, supplier, order_date, expected_delivery, actual_delivery, notes, dimensions) 
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [user_id, job_id, customer_id, material_name, material_type || null, description || null, quantity, unit || null, unit_cost || null, status || 'needed', location || null, supplier || null, order_date || null, expected_delivery || null, actual_delivery || null, notes || null, dimensionsJson],
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       
@@ -254,11 +267,15 @@ app.post('/materials', (req, res) => {
 // Update a material
 app.put('/materials/:id/:userId', (req, res) => {
   const { id, userId } = req.params;
-  const { material_name, description, quantity, unit, unit_cost, status, location, supplier, order_date, expected_delivery, actual_delivery, notes, job_id } = req.body;
+  const { material_name, description, quantity, unit, unit_cost, status, location, supplier, order_date, expected_delivery, actual_delivery, notes, job_id, material_type, dimensions } = req.body;
+  
+  // Convert dimensions object to JSON string if provided
+  const dimensionsJson = dimensions ? JSON.stringify(dimensions) : null;
   
   db.query(
     `UPDATE job_materials SET 
       material_name = ?,
+      material_type = ?,
       description = ?,
       quantity = ?,
       unit = ?,
@@ -269,9 +286,10 @@ app.put('/materials/:id/:userId', (req, res) => {
       order_date = ?,
       expected_delivery = ?,
       actual_delivery = ?,
-      notes = ?
+      notes = ?,
+      dimensions = ?
     WHERE id = ? AND user_id = ?`,
-    [material_name, description || null, quantity, unit || null, unit_cost || null, status || 'needed', location || null, supplier || null, order_date || null, expected_delivery || null, actual_delivery || null, notes || null, id, userId],
+    [material_name, material_type || null, description || null, quantity, unit || null, unit_cost || null, status || 'needed', location || null, supplier || null, order_date || null, expected_delivery || null, actual_delivery || null, notes || null, dimensionsJson, id, userId],
     (err) => {
       if (err) return res.status(500).json({ error: err.message });
       
@@ -363,6 +381,71 @@ app.delete('/inventory/:id', (req, res) => {
     if (err) return res.status(500).json({ error: err.message });
     res.json({ message: 'Item deleted' });
   });
+});
+
+// -------------------------
+// AREA ROUTES
+// -------------------------
+
+// Save area to a job
+app.post('/areas', (req, res) => {
+  const { user_id, job_id, customer_id, area_name, area_value, unit, shape_data } = req.body;
+  
+  db.query(
+    'INSERT INTO job_areas (user_id, job_id, customer_id, area_name, area_value, unit, shape_data, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, NOW())',
+    [user_id, job_id, customer_id, area_name, area_value, unit, shape_data],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Area saved successfully', areaId: results.insertId });
+    }
+  );
+});
+
+// Get all areas for a user
+app.get('/areas/user/:userId', (req, res) => {
+  const { userId } = req.params;
+  
+  db.query(
+    `SELECT ja.*, j.name as job_name, c.name as customer_name 
+     FROM job_areas ja 
+     LEFT JOIN jobs j ON ja.job_id = j.id 
+     LEFT JOIN customers c ON ja.customer_id = c.id 
+     WHERE ja.user_id = ? 
+     ORDER BY ja.created_at DESC`,
+    [userId],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    }
+  );
+});
+
+// Get all areas for a job
+app.get('/areas/job/:jobId/:userId', (req, res) => {
+  const { jobId, userId } = req.params;
+  
+  db.query(
+    'SELECT * FROM job_areas WHERE job_id = ? AND user_id = ? ORDER BY created_at DESC',
+    [jobId, userId],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json(results);
+    }
+  );
+});
+
+// Delete an area
+app.delete('/areas/:id/:userId', (req, res) => {
+  const { id, userId } = req.params;
+  
+  db.query(
+    'DELETE FROM job_areas WHERE id = ? AND user_id = ?',
+    [id, userId],
+    (err) => {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ message: 'Area deleted' });
+    }
+  );
 });
 
 // -------------------------
