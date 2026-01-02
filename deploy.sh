@@ -1,57 +1,57 @@
 #!/bin/bash
 
-# Deployment script for Construction CRM on EC2
-# Run this script after git pull to update both frontend and backend
+# Construction CRM Deployment Script
+# Run this on your EC2 instance to deploy updates
 
-set -e  # Exit on error
+set -e  # Exit on any error
 
 echo "🚀 Starting deployment..."
 
-# Colors for output
-GREEN='\033[0;32m'
-BLUE='\033[0;34m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+# Navigate to project directory
+cd ~/constructionCRM
 
-# Get the directory where the script is located
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-cd "$SCRIPT_DIR"
+# Pull latest changes
+echo "📥 Pulling latest code from GitHub..."
+git pull origin main
 
 # Update backend
-echo -e "${BLUE}📦 Updating backend dependencies...${NC}"
+echo "🔧 Updating backend..."
 npm install --production
-
-# Restart backend with PM2
-echo -e "${BLUE}🔄 Restarting backend...${NC}"
-pm2 restart construction-crm-api || pm2 start server.js --name construction-crm-api
+pm2 restart construction-crm-api
 
 # Update frontend
-echo -e "${BLUE}📦 Building frontend...${NC}"
+echo "🎨 Rebuilding frontend..."
 cd inventory-frontend
 npm install
 
-# Get EC2 public IP for frontend build
-echo -e "${BLUE}🌐 Detecting EC2 public IP...${NC}"
-EC2_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4 || echo "localhost")
-echo -e "${BLUE}   Using API URL: http://$EC2_IP${NC}"
+# Clean build artifacts
+rm -rf build/ node_modules/.cache/
 
-# Build frontend with environment variable
-echo -e "${BLUE}🏗️  Building React app...${NC}"
-REACT_APP_API_URL=http://$EC2_IP npm run build
+# Get EC2 public IP
+EC2_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
 
-# Restart Nginx
-echo -e "${BLUE}🔄 Restarting Nginx...${NC}"
+# Build with environment variable (use domain if available, otherwise IP)
+if [ -f "../.env" ]; then
+    source ../.env
+    API_URL=${DOMAIN_URL:-http://$EC2_IP}
+else
+    API_URL="https://beamliner.com"
+fi
+
+echo "📦 Building with API URL: $API_URL"
+REACT_APP_API_URL=$API_URL npm run build
+
+# Restart nginx
+echo "🔄 Restarting Nginx..."
 sudo systemctl restart nginx
 
-# Check status
-echo -e "${GREEN}✅ Deployment complete!${NC}"
+# Show PM2 status
+cd ~/constructionCRM
+echo ""
+echo "✅ Deployment complete!"
 echo ""
 echo "Backend status:"
-pm2 status construction-crm-api
-echo ""
-echo "Nginx status:"
-sudo systemctl status nginx --no-pager -l
+pm2 list
 
 echo ""
-echo -e "${GREEN}🎉 Your application has been updated!${NC}"
-
+echo "🌐 Your site is live at: $API_URL"
