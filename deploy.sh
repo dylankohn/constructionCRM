@@ -27,16 +27,8 @@ npm install
 # Clean build artifacts
 rm -rf build/ node_modules/.cache/
 
-# Get EC2 public IP
-EC2_IP=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
-
-# Build with environment variable (use domain if available, otherwise IP)
-if [ -f "../.env" ]; then
-    source ../.env
-    API_URL=${DOMAIN_URL:-http://$EC2_IP}
-else
-    API_URL="https://beamliner.com"
-fi
+# Build with domain name (no CORS issues when API is on same domain)
+API_URL="https://www.beamliner.com"
 
 echo "📦 Building with API URL: $API_URL"
 REACT_APP_API_URL=$API_URL npm run build
