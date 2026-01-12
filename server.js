@@ -1,32 +1,96 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
+const helmet = require('helmet');
+const { body, validationResult } = require('express-validator');
 require('dotenv').config();
 
 const app = express();
 
-// CORS configuration - allow frontend and mobile app to access backend
+// CORS configuration - allow only trusted origins
+const allowedOrigins = [
+  // Production domains
+  'https://beamliner.com',
+  'https://www.beamliner.com',
+  'http://beamliner.com',
+  'http://www.beamliner.com',
+  
+  // Development (only in non-production)
+  process.env.NODE_ENV !== 'production' ? 'http://localhost:3001' : null,
+  process.env.NODE_ENV !== 'production' ? 'http://localhost:3000' : null,
+  process.env.NODE_ENV !== 'production' ? 'http://localhost:19000' : null,
+  process.env.NODE_ENV !== 'production' ? 'http://localhost:19001' : null,
+  process.env.NODE_ENV !== 'production' ? 'http://localhost:19002' : null,
+].filter(Boolean);
+
+// CORS origin validator function
 const corsOptions = {
-  origin: [
-    'http://localhost:3001',  // Local development (web frontend)
-    'http://localhost:3000',  // Alternate local frontend (or Render frontend)
-    'http://localhost:19000', // Expo mobile app (default)
-    'http://localhost:19001', // Expo mobile app (alternate)
-    'http://localhost:19002', // Expo mobile app (alternate)
-    process.env.FRONTEND_URL, // Production frontend URL (set in .env)
-    /^http:\/\/\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/, // Allow any IP (for EC2, regex)
-    'http://192.168.1.*',     // Local network for mobile testing (wildcard)
-    'exp://*'                 // Expo development URLs
-  ].filter(Boolean),  // Remove undefined values
-  credentials: true
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+    
+    // Check if origin is in allowed list
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    
+    // In development, allow localhost with any port
+    if (process.env.NODE_ENV !== 'production' && origin.startsWith('http://localhost:')) {
+      return callback(null, true);
+    }
+    
+    // Block all other origins
+    console.warn(`⚠️  CORS blocked: ${origin}`);
+    callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+  optionsSuccessStatus: 200,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 };
-// For mobile development, allow all origins temporarily
-// In production, restrict to your actual domains
-if (process.env.NODE_ENV !== 'production') {
-  app.use(cors());
-} else {
-  app.use(cors(corsOptions));
-}
+
+app.use(cors(corsOptions));
+
+// Security headers with Helmet
+app.use(helmet({
+  // Content Security Policy
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'"], // Allow inline styles (needed for React)
+      scriptSrc: ["'self'"], 
+      imgSrc: ["'self'", "data:", "https:"],
+      connectSrc: ["'self'"],
+      fontSrc: ["'self'", "data:"],
+      objectSrc: ["'none'"],
+      mediaSrc: ["'self'"],
+      frameSrc: ["'none'"],
+    },
+  },
+  // HTTP Strict Transport Security (HSTS)
+  hsts: {
+    maxAge: 31536000, // 1 year in seconds
+    includeSubDomains: true,
+    preload: true
+  },
+  // X-Frame-Options (prevent clickjacking)
+  frameguard: {
+    action: 'deny'
+  },
+  // X-Content-Type-Options (prevent MIME sniffing)
+  noSniff: true,
+  // X-XSS-Protection (legacy but still useful)
+  xssFilter: true,
+  // Referrer Policy
+  referrerPolicy: {
+    policy: 'strict-origin-when-cross-origin'
+  },
+  // Remove X-Powered-By header
+  hidePoweredBy: true
+}));
+
 app.use(express.json());
 
 const db = mysql.createPool({
@@ -38,7 +102,11 @@ const db = mysql.createPool({
   connectionLimit: 10,
   queueLimit: 0,
   enableKeepAlive: true,
-  keepAliveInitialDelay: 0
+  // SSL configuration (optional - see SECURITY.md Step 1 for setup)
+  // ssl: {
+  //   rejectUnauthorized: true,
+  //   ca: fs.readFileSync('./rds-ca-bundle.pem')
+  // }
 });
 
 // Test the connection
@@ -52,35 +120,102 @@ db.getConnection((err, connection) => {
 });
 
 // -------------------------
+// IMPORTS FOR AUTH & VALIDATION
+// -------------------------
+
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const { authenticateToken, authRateLimiter, apiRateLimiter } = require('./middleware/auth');
+const validate = require('./middleware/validation');
+
+// Apply generous rate limiter to all API endpoints (1000 req/min)
+app.use(apiRateLimiter);
+
+// -------------------------
 // AUTH ROUTES
 // -------------------------
 
-// Create account
-app.post('/auth/register', (req, res) => {
+// Create account - Apply strict rate limiter (10 attempts/min)
+app.post('/auth/register', authRateLimiter, validate.register, async (req, res) => {
   const { username, password } = req.body;
+  
+  // Validate input
+  if (!username || !password) {
+    return res.status(400).json({ error: 'Username and password are required' });
+  }
+  
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+  
+  try {
+    // Hash the password before storing
+    const bcrypt = require('bcryptjs');
+    const hashedPassword = await bcrypt.hash(password, 10);
+    
+    db.query(
+      'INSERT INTO users (username, password) VALUES (?, ?)',
+      [username, hashedPassword],
+      (err, results) => {
+        if (err) {
+          // Check for duplicate username
+          if (err.code === 'ER_DUP_ENTRY') {
+            return res.status(409).json({ error: 'Username already exists' });
+          }
+          return res.status(500).json({ error: err.message });
+        }
+        res.json({ message: 'Account created', userId: results.insertId });
+      }
+    );
+  } catch (error) {
+    res.status(500).json({ error: 'Error creating account' });
+  }
+});
+
+// Login endpoint (generate JWT)
+// Login - Apply strict rate limiter (10 attempts/min)
+app.post('/auth/login', authRateLimiter, validate.login, async (req, res) => {
+  const { username, password } = req.body;
+  
   db.query(
-    'INSERT INTO users (username, password) VALUES (?, ?)',
-    [username, password],
-    (err, results) => {
+    'SELECT * FROM users WHERE username = ?',
+    [username],
+    async (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ message: 'Account created', userId: results.insertId });
+      if (results.length === 0) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+      
+      const user = results[0];
+      
+      // Compare hashed password
+      const validPassword = await bcrypt.compare(password, user.password);
+      if (!validPassword) {
+        return res.status(401).json({ error: 'Invalid credentials' });
+      }
+      
+      // Generate JWT token
+      const token = jwt.sign(
+        { id: user.id, username: user.username },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
+      );
+      
+      res.json({
+        message: 'Login successful',
+        token,
+        user: {
+          id: user.id,
+          username: user.username
+        }
+      });
     }
   );
 });
 
-// Login
-app.post('/auth/login', (req, res) => {
-  const { username, password } = req.body;
-  db.query(
-    'SELECT * FROM users WHERE username = ? AND password = ?',
-    [username, password],
-    (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
-      if (results.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
-      res.json({ message: 'Login successful', user: results[0] });
-    }
-  );
-});
+// Protect all routes (add after login route)
+app.use(authenticateToken);
+
 
 // -------------------------
 // CUSTOMER ROUTES
@@ -96,7 +231,7 @@ app.get('/customers/:userId', (req, res) => {
 });
 
 // Add a new customer for a specific user
-app.post('/customers', (req, res) => {
+app.post('/customers', validate.customer, (req, res) => {
   const { user_id, name } = req.body;
   db.query(
     'INSERT INTO customers (user_id, name) VALUES (?, ?)',
@@ -104,6 +239,28 @@ app.post('/customers', (req, res) => {
     (err, results) => {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ message: 'Customer added', customerId: results.insertId, name });
+    }
+  );
+});
+
+// Update a customer name (only if it belongs to the user)
+app.put('/customers/:id/:userId', validate.customerUpdate, (req, res) => {
+  const { id, userId } = req.params;
+  const { name } = req.body;
+  
+  if (!name || !name.trim()) {
+    return res.status(400).json({ error: 'Customer name is required' });
+  }
+  
+  db.query(
+    'UPDATE customers SET name = ? WHERE id = ? AND user_id = ?',
+    [name.trim(), id, userId],
+    (err, results) => {
+      if (err) return res.status(500).json({ error: err.message });
+      if (results.affectedRows === 0) {
+        return res.status(404).json({ error: 'Customer not found or access denied' });
+      }
+      res.json({ message: 'Customer updated', name: name.trim() });
     }
   );
 });
@@ -149,7 +306,7 @@ app.get('/jobs/:jobId/:userId', (req, res) => {
 });
 
 // Add a new job for a customer
-app.post('/jobs', (req, res) => {
+app.post('/jobs', validate.job, (req, res) => {
   const { user_id, customer_id, name, description, status } = req.body;
   db.query(
     'INSERT INTO jobs (user_id, customer_id, name, description, status) VALUES (?, ?, ?, ?, ?)',
@@ -162,7 +319,7 @@ app.post('/jobs', (req, res) => {
 });
 
 // Update a job
-app.put('/jobs/:id/:userId', (req, res) => {
+app.put('/jobs/:id/:userId', validate.job, (req, res) => {
   const { id, userId } = req.params;
   const { 
     name, 
@@ -253,7 +410,7 @@ app.get('/materials/job/:jobId/:userId', (req, res) => {
 });
 
 // Add a new material to a job
-app.post('/materials', (req, res) => {
+app.post('/materials', validate.material, (req, res) => {
   const { user_id, job_id, customer_id, material_name, description, quantity, unit, unit_cost, status, location, supplier, order_date, expected_delivery, actual_delivery, notes, material_type, dimensions } = req.body;
   
   // Convert dimensions object to JSON string if provided
@@ -276,7 +433,7 @@ app.post('/materials', (req, res) => {
 });
 
 // Update a material
-app.put('/materials/:id/:userId', (req, res) => {
+app.put('/materials/:id/:userId', validate.material, (req, res) => {
   const { id, userId } = req.params;
   const { material_name, description, quantity, unit, unit_cost, status, location, supplier, order_date, expected_delivery, actual_delivery, notes, job_id, material_type, dimensions } = req.body;
   

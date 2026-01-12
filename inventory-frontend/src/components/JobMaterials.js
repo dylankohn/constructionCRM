@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BASE_URL } from "../config";
+import { authFetch, logout } from "../utils/auth";
 
 export default function JobMaterials({ user, setUser }) {
     const { jobId, customerId } = useParams();
@@ -62,7 +63,8 @@ export default function JobMaterials({ user, setUser }) {
 
     const fetchMaterials = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/materials/job/${jobId}/${user.id}`);
+            const res = await authFetch(`${BASE_URL}/materials/job/${jobId}/${user.id}`);
+            if (!res) return;
             const data = await res.json();
             setMaterials(data);
         } catch (err) {
@@ -72,7 +74,8 @@ export default function JobMaterials({ user, setUser }) {
 
     const fetchJobName = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/jobs/${jobId}/${user.id}`);
+            const res = await authFetch(`${BASE_URL}/jobs/${jobId}/${user.id}`);
+            if (!res) return;
             const data = await res.json();
             setJobName(data.name || "Job");
         } catch (err) {
@@ -262,22 +265,22 @@ export default function JobMaterials({ user, setUser }) {
         try {
             if (editingMaterial) {
                 // Update existing material
-                const res = await fetch(`${BASE_URL}/materials/${editingMaterial.id}/${user.id}`, {
+                const res = await authFetch(`${BASE_URL}/materials/${editingMaterial.id}/${user.id}`, {
                     method: "PUT",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
                 });
+                if (!res) return;
                 if (res.ok) {
                     await fetchMaterials();
                     handleClose();
                 }
             } else {
                 // Add new material
-                const res = await fetch(`${BASE_URL}/materials`, {
+                const res = await authFetch(`${BASE_URL}/materials`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
                 });
+                if (!res) return;
                 if (res.ok) {
                     await fetchMaterials();
                     handleClose();
@@ -292,9 +295,10 @@ export default function JobMaterials({ user, setUser }) {
         if (!window.confirm("Are you sure you want to delete this material?")) return;
         
         try {
-            const res = await fetch(`${BASE_URL}/materials/${materialId}/${user.id}/${jobId}`, {
+            const res = await authFetch(`${BASE_URL}/materials/${materialId}/${user.id}/${jobId}`, {
                 method: "DELETE",
             });
+            if (!res) return;
             if (res.ok) {
                 await fetchMaterials();
             }
@@ -750,9 +754,8 @@ export default function JobMaterials({ user, setUser }) {
         if (material.status === newStatus) return;
 
         try {
-            const res = await fetch(`${BASE_URL}/materials/${material.id}/${user.id}`, {
+            const res = await authFetch(`${BASE_URL}/materials/${material.id}/${user.id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     material_name: material.material_name,
                     description: material.description,
@@ -769,6 +772,7 @@ export default function JobMaterials({ user, setUser }) {
                     job_id: jobId,
                 }),
             });
+            if (!res) return;
 
             if (res.ok) {
                 fetchMaterials();
@@ -812,9 +816,8 @@ export default function JobMaterials({ user, setUser }) {
         if (material[editingCell.field] === updatedValue) return;
 
         try {
-            const res = await fetch(`${BASE_URL}/materials/${material.id}/${user.id}`, {
+            const res = await authFetch(`${BASE_URL}/materials/${material.id}/${user.id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     material_name: editingCell.field === "material_name" ? updatedValue : material.material_name,
                     description: editingCell.field === "description" ? updatedValue : material.description,
@@ -831,6 +834,7 @@ export default function JobMaterials({ user, setUser }) {
                     job_id: jobId,
                 }),
             });
+            if (!res) return;
 
             if (res.ok) {
                 fetchMaterials();
@@ -885,9 +889,23 @@ export default function JobMaterials({ user, setUser }) {
                             <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
                         </svg>
                     </button>
-                    <div style={styles.title}>{jobName} - Materials</div>
+                    <div style={styles.title}>
+                        <span
+                            style={{
+                                cursor: "pointer",
+                                transition: "color 0.2s",
+                            }}
+                            onClick={() => navigate(`/customer/${customerId}/job/${jobId}`)}
+                            onMouseEnter={(e) => e.target.style.color = "#99CFCE"}
+                            onMouseLeave={(e) => e.target.style.color = "#ffffff"}
+                            title="Go to Job Details"
+                        >
+                            {jobName}
+                        </span>
+                        {" - Materials"}
+                    </div>
                 </div>
-                <button onClick={() => setUser(null)} style={styles.logoutBtn}>
+                <button onClick={() => logout(setUser)} style={styles.logoutBtn}>
                     Log out
                 </button>
             </header>

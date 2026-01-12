@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BASE_URL } from "../config";
+import { authFetch, logout } from "../utils/auth";
 
 export default function CustomerJobs({ user, setUser }) {
     const { customerId } = useParams();
@@ -14,6 +15,8 @@ export default function CustomerJobs({ user, setUser }) {
     const [addJobHover, setAddJobHover] = useState(false);
     const [jobHover, setJobHover] = useState(null);
     const [cancelHover, setCancelHover] = useState(false);
+    const [editingCustomerName, setEditingCustomerName] = useState(false);
+    const [tempCustomerName, setTempCustomerName] = useState("");
 
     useEffect(() => {
         if (user?.id && customerId) {
@@ -25,7 +28,8 @@ export default function CustomerJobs({ user, setUser }) {
 
     const fetchJobs = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/jobs/customer/${customerId}/${user.id}`);
+            const res = await authFetch(`${BASE_URL}/jobs/customer/${customerId}/${user.id}`);
+            if (!res) return;
             const data = await res.json();
             setJobs(data);
         } catch (err) {
@@ -35,10 +39,13 @@ export default function CustomerJobs({ user, setUser }) {
 
     const fetchCustomerName = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/customers/${user.id}`);
+            const res = await authFetch(`${BASE_URL}/customers/${user.id}`);
+            if (!res) return;
             const data = await res.json();
-            const customer = data.find(c => c.id === parseInt(customerId));
-            setCustomerName(customer?.name || "Customer");
+            if (Array.isArray(data)) {
+                const customer = data.find(c => c.id === parseInt(customerId));
+                setCustomerName(customer?.name || "Customer");
+            }
         } catch (err) {
             console.error("Error fetching customer name:", err);
         }
@@ -58,9 +65,8 @@ export default function CustomerJobs({ user, setUser }) {
         e.preventDefault();
         if (newJobName.trim()) {
             try {
-                const res = await fetch(`${BASE_URL}/jobs`, {
+                const res = await authFetch(`${BASE_URL}/jobs`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         user_id: user.id,
                         customer_id: parseInt(customerId),
@@ -69,6 +75,7 @@ export default function CustomerJobs({ user, setUser }) {
                         status: "pending",
                     }),
                 });
+                if (!res) return;
                 const data = await res.json();
 
                 if (res.ok) {
@@ -93,6 +100,51 @@ export default function CustomerJobs({ user, setUser }) {
 
     const handleJobClick = (jobId) => {
         navigate(`/customer/${customerId}/job/${jobId}`);
+    };
+
+    const handleEditCustomerName = () => {
+        setEditingCustomerName(true);
+        setTempCustomerName(customerName);
+    };
+
+    const handleSaveCustomerName = async () => {
+        if (!tempCustomerName.trim() || tempCustomerName === customerName) {
+            setEditingCustomerName(false);
+            return;
+        }
+
+        try {
+            const res = await authFetch(`${BASE_URL}/customers/${customerId}/${user.id}`, {
+                method: "PUT",
+                body: JSON.stringify({ name: tempCustomerName.trim() }),
+            });
+            if (!res) return;
+
+            if (res.ok) {
+                setCustomerName(tempCustomerName.trim());
+                setEditingCustomerName(false);
+            } else {
+                const data = await res.json();
+                console.error("Error updating customer:", data.error);
+                alert("Failed to update customer name");
+            }
+        } catch (err) {
+            console.error("Error updating customer:", err);
+            alert("Error updating customer name");
+        }
+    };
+
+    const handleCancelEdit = () => {
+        setEditingCustomerName(false);
+        setTempCustomerName("");
+    };
+
+    const handleKeyPress = (e) => {
+        if (e.key === "Enter") {
+            handleSaveCustomerName();
+        } else if (e.key === "Escape") {
+            handleCancelEdit();
+        }
     };
 
     const styles = {
@@ -399,13 +451,61 @@ export default function CustomerJobs({ user, setUser }) {
                             <path d="M12 3l9 8h-3v9h-12v-9h-3l9-8z" />
                         </svg>
                     </button>
-                    <div style={styles.title}>
-                        {customerName} - Jobs
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1 }}>
+                        <div style={styles.title}>
+                            {editingCustomerName ? (
+                                <input
+                                    type="text"
+                                    value={tempCustomerName}
+                                    onChange={(e) => setTempCustomerName(e.target.value)}
+                                    onBlur={handleSaveCustomerName}
+                                    onKeyDown={handleKeyPress}
+                                    style={{
+                                        fontSize: 18,
+                                        fontWeight: 600,
+                                        color: "#ffffff",
+                                        background: "rgba(255, 255, 255, 0.1)",
+                                        border: "2px solid #99CFCE",
+                                        borderRadius: 4,
+                                        padding: "4px 8px",
+                                        outline: "none",
+                                        minWidth: 200,
+                                    }}
+                                    autoFocus
+                                />
+                            ) : (
+                                <span>{customerName} - Jobs</span>
+                            )}
+                        </div>
+                        <button
+                            onClick={handleEditCustomerName}
+                            style={{
+                                appearance: "none",
+                                border: "none",
+                                background: "transparent",
+                                padding: "6px 12px",
+                                borderRadius: 4,
+                                cursor: "pointer",
+                                fontSize: 14,
+                                fontWeight: 600,
+                                color: "#99CFCE",
+                                transition: "background .12s",
+                            }}
+                            onMouseEnter={(e) => {
+                                e.target.style.background = "rgba(153, 207, 206, 0.2)";
+                            }}
+                            onMouseLeave={(e) => {
+                                e.target.style.background = "transparent";
+                            }}
+                            title="Edit customer name"
+                        >
+                            Edit
+                        </button>
                     </div>
                 </div>
                 <button
                     type="button"
-                    onClick={() => setUser(null)}
+                    onClick={() => logout(setUser)}
                     style={styles.logoutBtn}
                 >
                     Log out
@@ -414,7 +514,9 @@ export default function CustomerJobs({ user, setUser }) {
 
             <main style={styles.content}>
                 <div style={styles.box}>
-                    <h2 style={styles.boxTitle}>Jobs for {customerName}</h2>
+                    <h2 style={styles.boxTitle}>
+                        Jobs for {editingCustomerName ? tempCustomerName : customerName}
+                    </h2>
                     <button
                         onClick={handleAddJob}
                         style={{

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { BASE_URL } from "../config";
+import { authFetch, logout } from "../utils/auth";
 
 export default function Dashboard({ user, setUser }) {
     const navigate = useNavigate();
@@ -26,7 +27,17 @@ export default function Dashboard({ user, setUser }) {
 
     const fetchCustomers = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/customers/${user.id}`);
+            const res = await authFetch(`${BASE_URL}/customers/${user.id}`);
+            if (!res) {
+                // No token, will be redirected
+                return;
+            }
+            if (!res.ok) {
+                const data = await res.json();
+                console.error("Error fetching customers:", data.error || "Invalid response");
+                setCustomers([]);
+                return;
+            }
             const data = await res.json();
             if (Array.isArray(data)) {
                 setCustomers(data);
@@ -43,7 +54,11 @@ export default function Dashboard({ user, setUser }) {
     const fetchAllJobs = async () => {
         try {
             // Fetch all customers first
-            const customersRes = await fetch(`${BASE_URL}/customers/${user.id}`);
+            const customersRes = await authFetch(`${BASE_URL}/customers/${user.id}`);
+            if (!customersRes) {
+                // No token, will be redirected
+                return;
+            }
             const customersData = await customersRes.json();
             
             if (!Array.isArray(customersData)) {
@@ -55,7 +70,8 @@ export default function Dashboard({ user, setUser }) {
             // Fetch jobs for each customer
             const allJobs = [];
             for (const customer of customersData) {
-                const jobsRes = await fetch(`${BASE_URL}/jobs/customer/${customer.id}/${user.id}`);
+                const jobsRes = await authFetch(`${BASE_URL}/jobs/customer/${customer.id}/${user.id}`);
+                if (!jobsRes) continue;
                 const jobsData = await jobsRes.json();
                 
                 // Add customer info to each job only if jobsData is an array
@@ -358,9 +374,8 @@ export default function Dashboard({ user, setUser }) {
         e.preventDefault();
         if (newCustomerName.trim()) {
             try {
-                const res = await fetch(`${BASE_URL}/customers`, {
+                const res = await authFetch(`${BASE_URL}/customers`, {
                     method: "POST",
-                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ 
                         user_id: user.id,
                         name: newCustomerName.trim() 
@@ -394,7 +409,7 @@ export default function Dashboard({ user, setUser }) {
                 <div style={styles.welcome}>Welcome, {user?.username || "User"}</div>
                 <button
                     type="button"
-                    onClick={() => setUser(null)}
+                    onClick={() => logout(setUser)}
                     style={{ ...styles.logoutBtn, ...(hover ? styles.logoutBtnHover : {}) }}
                     onMouseEnter={() => setHover(true)}
                     onMouseLeave={() => setHover(false)}

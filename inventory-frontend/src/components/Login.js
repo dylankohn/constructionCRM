@@ -20,7 +20,17 @@ function Login({ setUser }) {
       const data = await res.json();
 
       if (res.ok) {
-        setUser(data.user || { id: data.userId, username });
+        if (isRegister) {
+          // Registration successful, now log in
+          setError("Account created! Please log in.");
+          setIsRegister(false);
+        } else {
+          // Login successful - store JWT token
+          if (data.token) {
+            localStorage.setItem('authToken', data.token);
+          }
+          setUser(data.user || { id: data.userId, username });
+        }
       } else {
         setError(data.error);
       }

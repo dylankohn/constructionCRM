@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { BASE_URL } from "../config";
+import { authFetch, logout } from "../utils/auth";
 
 export default function AreaCalculator({ user, setUser }) {
     const navigate = useNavigate();
@@ -86,7 +87,8 @@ export default function AreaCalculator({ user, setUser }) {
         // Fetch customers
         const fetchCustomers = async () => {
             try {
-                const res = await fetch(`${BASE_URL}/customers/${user.id}`);
+                const res = await authFetch(`${BASE_URL}/customers/${user.id}`);
+                if (!res) return;
                 if (res.ok) {
                     const data = await res.json();
                     setCustomers(data);
@@ -99,7 +101,8 @@ export default function AreaCalculator({ user, setUser }) {
         // Fetch all saved areas for the user
         const fetchSavedAreas = async () => {
             try {
-                const res = await fetch(`${BASE_URL}/areas/user/${user.id}`);
+                const res = await authFetch(`${BASE_URL}/areas/user/${user.id}`);
+                if (!res) return;
                 if (res.ok) {
                     const data = await res.json();
                     setSavedAreas(data);
@@ -506,7 +509,8 @@ export default function AreaCalculator({ user, setUser }) {
         
         if (customerId) {
             try {
-                const res = await fetch(`${BASE_URL}/jobs/customer/${customerId}/${user.id}`);
+                const res = await authFetch(`${BASE_URL}/jobs/customer/${customerId}/${user.id}`);
+                if (!res) return;
                 if (res.ok) {
                     const data = await res.json();
                     setJobs(data);
@@ -531,9 +535,8 @@ export default function AreaCalculator({ user, setUser }) {
         try {
             const shapeData = getShapeData(currentShapeRef.current, shapeTypeRef.current);
             
-            const res = await fetch(`${BASE_URL}/areas`, {
+            const res = await authFetch(`${BASE_URL}/areas`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     user_id: user.id,
                     job_id: selectedJob,
@@ -544,6 +547,7 @@ export default function AreaCalculator({ user, setUser }) {
                     shape_data: JSON.stringify(shapeData),
                 }),
             });
+            if (!res) return;
 
             if (res.ok) {
                 // Navigate to the job details page
@@ -870,10 +874,7 @@ export default function AreaCalculator({ user, setUser }) {
                     <h1 style={styles.title}>Area Calculator</h1>
                 </div>
                 <button
-                    onClick={() => {
-                        localStorage.removeItem("user");
-                        setUser(null);
-                    }}
+                    onClick={() => logout(setUser)}
                     style={{
                         ...styles.logoutBtn,
                         ...(logoutHover ? styles.logoutBtnHover : {}),

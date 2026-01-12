@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { BASE_URL } from "../config";
+import { authFetch, logout } from "../utils/auth";
 
 export default function JobDetails({ user, setUser }) {
     const { jobId, customerId } = useParams();
@@ -30,7 +31,8 @@ export default function JobDetails({ user, setUser }) {
 
     const fetchJobDetails = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/jobs/${jobId}/${user.id}`);
+            const res = await authFetch(`${BASE_URL}/jobs/${jobId}/${user.id}`);
+            if (!res) return;
             const data = await res.json();
             setJob(data);
             setEditedJob(data);
@@ -43,10 +45,13 @@ export default function JobDetails({ user, setUser }) {
 
     const fetchCustomerName = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/customers/${user.id}`);
+            const res = await authFetch(`${BASE_URL}/customers/${user.id}`);
+            if (!res) return;
             const data = await res.json();
-            const customer = data.find(c => c.id === parseInt(customerId));
-            setCustomerName(customer?.name || "Customer");
+            if (Array.isArray(data)) {
+                const customer = data.find(c => c.id === parseInt(customerId));
+                setCustomerName(customer?.name || "Customer");
+            }
         } catch (err) {
             console.error("Error fetching customer name:", err);
         }
@@ -54,7 +59,8 @@ export default function JobDetails({ user, setUser }) {
 
     const fetchSavedAreas = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/areas/job/${jobId}/${user.id}`);
+            const res = await authFetch(`${BASE_URL}/areas/job/${jobId}/${user.id}`);
+            if (!res) return;
             if (res.ok) {
                 const data = await res.json();
                 setSavedAreas(data);
@@ -70,9 +76,10 @@ export default function JobDetails({ user, setUser }) {
         }
 
         try {
-            const res = await fetch(`${BASE_URL}/areas/${areaId}/${user.id}`, {
+            const res = await authFetch(`${BASE_URL}/areas/${areaId}/${user.id}`, {
                 method: "DELETE",
             });
+            if (!res) return;
 
             if (res.ok) {
                 fetchSavedAreas(); // Refresh the list
@@ -96,11 +103,11 @@ export default function JobDetails({ user, setUser }) {
 
     const handleSave = async () => {
         try {
-            const res = await fetch(`${BASE_URL}/jobs/${jobId}/${user.id}`, {
+            const res = await authFetch(`${BASE_URL}/jobs/${jobId}/${user.id}`, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(editedJob),
             });
+            if (!res) return;
 
             if (res.ok) {
                 setJob(editedJob);
@@ -565,7 +572,7 @@ export default function JobDetails({ user, setUser }) {
                         </>
                     )}
                     <button
-                        onClick={() => setUser(null)}
+                        onClick={() => logout(setUser)}
                         style={styles.logoutBtn}
                     >
                         Log out
