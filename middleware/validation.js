@@ -39,6 +39,26 @@ const validationRules = {
     handleValidationErrors
   ],
 
+  email: [
+    body('email')
+      .trim()
+      .notEmpty().withMessage('Email is required')
+      .isEmail().withMessage('Must be a valid email address')
+      .normalizeEmail(),
+    handleValidationErrors
+  ],
+
+  resetPassword: [
+    body('token')
+      .trim()
+      .notEmpty().withMessage('Reset token is required')
+      .isLength({ min: 64, max: 64 }).withMessage('Invalid token format'),
+    body('password')
+      .notEmpty().withMessage('Password is required')
+      .isLength({ min: 6, max: 100 }).withMessage('Password must be at least 6 characters'),
+    handleValidationErrors
+  ],
+
   // Customer operations
   customer: [
     body('name')

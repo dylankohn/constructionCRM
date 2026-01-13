@@ -232,7 +232,7 @@ app.post('/auth/login', authRateLimiter, validate.login, async (req, res) => {
 });
 
 // Password reset - Request reset token
-app.post('/auth/forgot-password', authRateLimiter, validate.email, async (req, res) => {
+app.post('/auth/forgot-password', authRateLimiter, async (req, res) => {
   const { email } = req.body;
   
   try {
@@ -303,7 +303,7 @@ app.post('/auth/forgot-password', authRateLimiter, validate.email, async (req, r
 });
 
 // Password reset - Reset password with token
-app.post('/auth/reset-password', authRateLimiter, validate.resetPassword, async (req, res) => {
+app.post('/auth/reset-password', authRateLimiter, async (req, res) => {
   const { token, password } = req.body;
   
   if (!token || !password) {
