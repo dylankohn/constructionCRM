@@ -30,7 +30,7 @@ jobs:
           --parameters commands='[
             "set -e",
             "echo \"📂 Navigating to project directory...\"",
-            "cd ~/constructionCRM",
+            "cd /home/ubuntu/constructionCRM",
             "echo \"⬇️  Pulling latest code from GitHub...\"",
             "git pull origin main",
             "echo \"📦 Installing backend dependencies...\"",
@@ -38,7 +38,7 @@ jobs:
             "echo \"🔄 Restarting backend API...\"",
             "pm2 restart construction-crm-api || pm2 start server.js --name construction-crm-api",
             "echo \"📂 Building frontend...\"",
-            "cd inventory-frontend",
+            "cd /home/ubuntu/constructionCRM/inventory-frontend",
             "npm install",
             "REACT_APP_API_URL=https://www.beamliner.com npm run build",
             "echo \"🔄 Restarting nginx...\"",
