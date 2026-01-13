@@ -177,22 +177,40 @@ app.post('/auth/register', authRateLimiter, validate.register, async (req, res) 
 app.post('/auth/login', authRateLimiter, validate.login, async (req, res) => {
   const { username, password } = req.body;
   
+  console.log('🔐 Login attempt:', { username, passwordLength: password?.length });
+  
   db.query(
     'SELECT * FROM users WHERE username = ?',
     [username],
     async (err, results) => {
-      if (err) return res.status(500).json({ error: err.message });
+      if (err) {
+        console.error('❌ DB error:', err.message);
+        return res.status(500).json({ error: err.message });
+      }
+      
       if (results.length === 0) {
+        console.log('❌ User not found:', username);
         return res.status(401).json({ error: 'Invalid credentials' });
       }
       
       const user = results[0];
+      console.log('✓ User found:', { 
+        id: user.id, 
+        username: user.username, 
+        hasPassword: !!user.password,
+        passwordPrefix: user.password?.substring(0, 10)
+      });
       
       // Compare hashed password
       const validPassword = await bcrypt.compare(password, user.password);
+      console.log('🔑 Password comparison result:', validPassword);
+      
       if (!validPassword) {
+        console.log('❌ Invalid password for user:', username);
         return res.status(401).json({ error: 'Invalid credentials' });
       }
+      
+      console.log('✅ Login successful:', username);
       
       // Generate JWT token
       const token = jwt.sign(
@@ -211,6 +229,160 @@ app.post('/auth/login', authRateLimiter, validate.login, async (req, res) => {
       });
     }
   );
+});
+
+// Password reset - Request reset token
+app.post('/auth/forgot-password', authRateLimiter, validate.email, async (req, res) => {
+  const { email } = req.body;
+  
+  try {
+    // Find user by email (assuming email column exists, or use username)
+    db.query(
+      'SELECT id, username, email FROM users WHERE email = ? OR username = ?',
+      [email, email],
+      async (err, results) => {
+        if (err) {
+          console.error('Database error:', err);
+          return res.status(500).json({ error: 'Server error' });
+        }
+        
+        // Always return success to prevent email enumeration
+        if (results.length === 0) {
+          return res.json({ 
+            message: 'If an account exists with that email, a password reset link has been sent.' 
+          });
+        }
+        
+        const user = results[0];
+        
+        // Generate secure reset token
+        const crypto = require('crypto');
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const hashedToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+        
+        // Set expiration (1 hour from now)
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+        
+        // Store hashed token in database
+        db.query(
+          'INSERT INTO password_reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)',
+          [user.id, hashedToken, expiresAt],
+          async (err) => {
+            if (err) {
+              console.error('Error storing reset token:', err);
+              return res.status(500).json({ error: 'Error processing request' });
+            }
+            
+            // Send email with reset token
+            try {
+              const { sendPasswordResetEmail } = require('./services/emailService');
+              await sendPasswordResetEmail(
+                user.email || email, 
+                resetToken, 
+                user.username
+              );
+              
+              res.json({ 
+                message: 'If an account exists with that email, a password reset link has been sent.' 
+              });
+            } catch (emailError) {
+              console.error('Error sending email:', emailError);
+              // Don't reveal email sending failure to user
+              res.json({ 
+                message: 'If an account exists with that email, a password reset link has been sent.' 
+              });
+            }
+          }
+        );
+      }
+    );
+  } catch (error) {
+    console.error('Error in forgot-password:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
+// Password reset - Reset password with token
+app.post('/auth/reset-password', authRateLimiter, validate.resetPassword, async (req, res) => {
+  const { token, password } = req.body;
+  
+  if (!token || !password) {
+    return res.status(400).json({ error: 'Token and password are required' });
+  }
+  
+  if (password.length < 6) {
+    return res.status(400).json({ error: 'Password must be at least 6 characters' });
+  }
+  
+  try {
+    // Hash the provided token to match stored hash
+    const crypto = require('crypto');
+    const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+    
+    // Find valid, unused token
+    db.query(
+      `SELECT rt.*, u.id as user_id, u.username, u.email 
+       FROM password_reset_tokens rt 
+       JOIN users u ON rt.user_id = u.id 
+       WHERE rt.token = ? AND rt.expires_at > NOW() AND rt.used = FALSE`,
+      [hashedToken],
+      async (err, results) => {
+        if (err) {
+          console.error('Database error:', err);
+          return res.status(500).json({ error: 'Server error' });
+        }
+        
+        if (results.length === 0) {
+          return res.status(400).json({ 
+            error: 'Invalid or expired reset token' 
+          });
+        }
+        
+        const tokenRecord = results[0];
+        
+        // Hash new password
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        // Update user password
+        db.query(
+          'UPDATE users SET password = ? WHERE id = ?',
+          [hashedPassword, tokenRecord.user_id],
+          async (err) => {
+            if (err) {
+              console.error('Error updating password:', err);
+              return res.status(500).json({ error: 'Error updating password' });
+            }
+            
+            // Mark token as used
+            db.query(
+              'UPDATE password_reset_tokens SET used = TRUE WHERE id = ?',
+              [tokenRecord.id],
+              () => {} // Don't wait for this
+            );
+            
+            // Send confirmation email
+            try {
+              const { sendPasswordResetConfirmation } = require('./services/emailService');
+              await sendPasswordResetConfirmation(
+                tokenRecord.email,
+                tokenRecord.username
+              );
+            } catch (emailError) {
+              console.error('Error sending confirmation:', emailError);
+              // Don't fail the reset if email fails
+            }
+            
+            res.json({ 
+              message: 'Password reset successful. You can now log in with your new password.' 
+            });
+          }
+        );
+      }
+    );
+  } catch (error) {
+    console.error('Error in reset-password:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
 });
 
 // Protect all routes (add after login route)
