@@ -30,31 +30,56 @@ jobs:
           --parameters commands='[
             "#!/bin/bash",
             "set -e",
-            "echo \"🚀 Starting deployment as ubuntu user...\"",
+            "echo \"========================================\"",
+            "echo \"🚀 Starting Deployment\"",
+            "echo \"========================================\"",
+            "echo \"\"",
             "sudo -i -u ubuntu bash << '\''EOF'\''",
+            "set -e",
             "export NVM_DIR=\"$HOME/.nvm\"",
             "[ -s \"$NVM_DIR/nvm.sh\" ] && . \"$NVM_DIR/nvm.sh\"",
             "[ -s \"$HOME/.bashrc\" ] && . \"$HOME/.bashrc\"",
-            "cd /home/ubuntu/constructionCRM",
-            "echo \"📂 In project directory\"",
-            "echo \"⬇️  Pulling latest code from GitHub...\"",
-            "git fetch origin main",
-            "git reset --hard origin/main",
+            "echo \"✓ Environment loaded (node: $(node --version), npm: $(npm --version))\"",
+            "cd /home/ubuntu/constructionCRM || { echo \"❌ Failed to cd to project\"; exit 1; }",
+            "echo \"✓ In project directory: $(pwd)\"",
+            "echo \"\"",
+            "echo \"📥 Updating code from GitHub...\"",
+            "git fetch origin main || { echo \"❌ Git fetch failed\"; exit 1; }",
+            "git reset --hard origin/main || { echo \"❌ Git reset failed\"; exit 1; }",
+            "echo \"✓ Code updated to: $(git rev-parse --short HEAD)\"",
+            "echo \"\"",
             "echo \"📦 Installing backend dependencies...\"",
-            "npm install --omit=dev",
-            "echo \"🔄 Restarting backend API...\"",
-            "pm2 delete construction-crm-api 2>/dev/null || true",
-            "pm2 start server.js --name construction-crm-api",
+            "npm install --omit=dev 2>&1 | grep -v \"baseline-browser-mapping\" || true",
+            "echo \"✓ Backend dependencies installed\"",
+            "echo \"\"",
+            "echo \"🔄 Managing backend API process...\"",
+            "pm2 delete construction-crm-api 2>/dev/null || echo \"  (No existing process to delete)\"",
+            "pm2 start server.js --name construction-crm-api || { echo \"❌ PM2 start failed\"; exit 1; }",
             "pm2 save",
-            "echo \"📂 Building frontend...\"",
-            "cd inventory-frontend",
-            "npm install",
-            "REACT_APP_API_URL=https://www.beamliner.com npm run build",
-            "echo \"✅ Backend and frontend updated!\"",
+            "echo \"✓ Backend API started\"",
+            "echo \"\"",
+            "echo \"🎨 Building frontend...\"",
+            "cd inventory-frontend || { echo \"❌ Failed to cd to frontend\"; exit 1; }",
+            "npm install 2>&1 | grep -v \"baseline-browser-mapping\" || true",
+            "echo \"  Dependencies installed\"",
+            "REACT_APP_API_URL=https://www.beamliner.com npm run build || { echo \"❌ Frontend build failed\"; exit 1; }",
+            "echo \"✓ Frontend built successfully\"",
+            "echo \"\"",
+            "echo \"✅ Application updated successfully!\"",
             "EOF",
+            "EXIT_CODE=$?",
+            "if [ $EXIT_CODE -ne 0 ]; then",
+            "  echo \"❌ Deployment failed with exit code: $EXIT_CODE\"",
+            "  exit $EXIT_CODE",
+            "fi",
+            "echo \"\"",
             "echo \"🔄 Restarting nginx...\"",
-            "sudo systemctl restart nginx",
-            "echo \"✅ Deployment complete!\""
+            "sudo systemctl restart nginx || { echo \"❌ Nginx restart failed\"; exit 1; }",
+            "echo \"✓ Nginx restarted\"",
+            "echo \"\"",
+            "echo \"========================================\"",
+            "echo \"✅ Deployment Complete!\"",
+            "echo \"========================================\""
           ]' \
           --output text \
           --query "Command.CommandId")
@@ -73,29 +98,40 @@ jobs:
     - name: Get Deployment Output
       if: always()
       run: |
-        echo "📋 Deployment Output:"
-        echo "===================="
+        echo "📋 Full Deployment Output:"
+        echo "================================"
+        
+        STATUS=$(aws ssm get-command-invocation \
+          --command-id "${{ steps.ssm-command.outputs.command_id }}" \
+          --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
+          --query "Status" \
+          --output text)
+        
+        echo "Status: $STATUS"
+        echo ""
+        echo "Standard Output:"
+        echo "----------------"
         aws ssm get-command-invocation \
           --command-id "${{ steps.ssm-command.outputs.command_id }}" \
           --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
           --query "StandardOutputContent" \
           --output text
-    
-    - name: Check for Errors
-      if: always()
-      run: |
-        ERROR_OUTPUT=$(aws ssm get-command-invocation \
+        
+        echo ""
+        echo "Standard Error:"
+        echo "---------------"
+        aws ssm get-command-invocation \
           --command-id "${{ steps.ssm-command.outputs.command_id }}" \
           --instance-id "${{ secrets.EC2_INSTANCE_ID }}" \
           --query "StandardErrorContent" \
-          --output text)
+          --output text
         
-        if [ ! -z "$ERROR_OUTPUT" ] && [ "$ERROR_OUTPUT" != "None" ]; then
-          echo "⚠️  Errors detected:"
-          echo "===================="
-          echo "$ERROR_OUTPUT"
+        if [ "$STATUS" != "Success" ]; then
+          echo ""
+          echo "❌ Deployment failed with status: $STATUS"
           exit 1
         else
-          echo "✅ No errors detected"
+          echo ""
+          echo "✅ Deployment completed successfully!"
         fi
 
