@@ -153,10 +153,10 @@ Once deployed, you can use these commands on your EC2 instance:
 ./monitoring.sh
 
 # View backend logs
-pm2 logs construction-crm-api
+pm2 logs server
 
 # Restart services
-pm2 restart construction-crm-api
+pm2 restart server
 sudo systemctl restart nginx
 
 # Update your app
@@ -257,7 +257,7 @@ If you run into issues:
 
 1. Check `TROUBLESHOOTING.md` first
 2. Run `./monitoring.sh` to diagnose
-3. Check logs: `pm2 logs construction-crm-api`
+3. Check logs: `pm2 logs server`
 4. Review error logs: `sudo tail -f /var/log/nginx/error.log`
 
 Common issues and solutions are all documented in `TROUBLESHOOTING.md`

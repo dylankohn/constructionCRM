@@ -45,7 +45,7 @@ grep JWT_SECRET .env
 ```bash
 # Add to .env file
 echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env
-pm2 restart construction-crm-api
+pm2 restart server
 ```
 
 ### 3. Database Connection Issue
@@ -53,7 +53,7 @@ pm2 restart construction-crm-api
 
 **Check on EC2:**
 ```bash
-pm2 logs construction-crm-api --lines 50
+pm2 logs server --lines 50
 ```
 
 **Look for:**
@@ -88,7 +88,7 @@ cd ~/constructionCRM
 node scripts/hash-passwords.js
 
 # Check PM2 logs to verify backend is working
-pm2 logs construction-crm-api --lines 20
+pm2 logs server --lines 20
 ```
 
 ### If JWT_SECRET is missing:
@@ -99,8 +99,8 @@ cat .env | grep JWT
 
 # If missing, add it
 echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env
-pm2 restart construction-crm-api
-pm2 logs construction-crm-api --lines 10
+pm2 restart server
+pm2 logs server --lines 10
 ```
 
 ### If user doesn't exist in production:
@@ -154,7 +154,7 @@ JWT_EXPIRES_IN=24h
 ## Next Steps
 
 1. SSH into EC2
-2. Check PM2 logs first: `pm2 logs construction-crm-api --lines 50`
+2. Check PM2 logs first: `pm2 logs server --lines 50`
 3. Look for login attempt logs when you try to login
 4. Check if JWT_SECRET exists in .env
 5. Verify user exists in production database with proper password hash

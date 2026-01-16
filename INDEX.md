@@ -316,7 +316,7 @@ You'll know deployment is successful when:
 ✅ All CRUD operations work (customers, jobs, materials)
 ✅ Area Calculator loads Google Maps
 ✅ `./monitoring.sh` shows all green checkmarks
-✅ No errors in `pm2 logs construction-crm-api`
+✅ No errors in `pm2 logs server`
 ✅ No errors in `/var/log/nginx/error.log`
 
 ---
@@ -326,7 +326,7 @@ You'll know deployment is successful when:
 ### Self-Service (Fastest)
 1. Check TROUBLESHOOTING.md for your specific issue
 2. Run `./monitoring.sh` to diagnose
-3. Check logs: `pm2 logs construction-crm-api`
+3. Check logs: `pm2 logs server`
 4. Review the relevant guide again
 
 ### Research

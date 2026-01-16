@@ -86,13 +86,13 @@ npm install
 echo -e "${BLUE}🧪 Testing database connection...${NC}"
 timeout 10 node server.js &
 sleep 5
-if pm2 list | grep -q "construction-crm-api"; then
-    pm2 delete construction-crm-api
+if pm2 list | grep -q "server"; then
+    pm2 delete server
 fi
 
 # Start backend with PM2
 echo -e "${BLUE}🚀 Starting backend with PM2...${NC}"
-pm2 start server.js --name construction-crm-api
+pm2 start server.js --name server
 
 # Configure PM2 startup
 echo -e "${BLUE}⚙️  Configuring PM2 to start on boot...${NC}"

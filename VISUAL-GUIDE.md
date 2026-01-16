@@ -183,7 +183,7 @@ In AWS Console:
 
 Verify on EC2:
 ┌────────────────────────────────────────────────────────────┐
-│ ubuntu@ip:~/constructionCRM$ pm2 logs construction-crm-api│
+│ ubuntu@ip:~/constructionCRM$ pm2 logs server│
 │                                                            │
 │ ✅ Successfully connected to MySQL database!              │
 │ Server running on port 3000                               │
@@ -359,7 +359,7 @@ Problem: Backend not connecting to database
 │   Verify DB_HOST, DB_USER, DB_PASSWORD, DB_NAME
 │
 └─→ Check: Backend logs
-    $ pm2 logs construction-crm-api
+    $ pm2 logs server
     Look for connection errors
 
 Problem: Frontend shows blank page
@@ -384,7 +384,7 @@ Problem: Frontend shows blank page
 ```
 ┌────────────────────────────────────────────────────────────┐
 │  IMMEDIATE (First 24 hours)                                │
-│  ├─ Monitor logs: pm2 logs construction-crm-api           │
+│  ├─ Monitor logs: pm2 logs server           │
 │  ├─ Test all features thoroughly                          │
 │  └─ Check ./monitoring.sh every few hours                 │
 │                                                            │

@@ -91,12 +91,12 @@ jobs:
           cd ~/constructionCRM
           git pull origin main
           npm install --production
-          pm2 restart construction-crm-api
+          pm2 restart server
           cd inventory-frontend
           npm install
           npm run build
           sudo systemctl restart nginx
-          pm2 logs construction-crm-api --lines 10
+          pm2 logs server --lines 10
 ```
 
 ## ⚠️ IMPORTANT: What NOT to Put in GitHub
@@ -177,8 +177,8 @@ Copy the output and use it as your `JWT_SECRET` value.
 
 ### Restart your backend:
 ```bash
-pm2 restart construction-crm-api
-pm2 logs construction-crm-api --lines 20
+pm2 restart server
+pm2 logs server --lines 20
 ```
 
 You should now see:

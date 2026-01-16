@@ -149,10 +149,10 @@ node server.js
 
 ```bash
 # Start backend with PM2
-pm2 start server.js --name construction-crm-api
+pm2 start server.js --name server
 
 # View logs
-pm2 logs construction-crm-api
+pm2 logs server
 
 # Configure PM2 to start on system reboot
 pm2 startup
@@ -345,7 +345,7 @@ const corsOptions = {
 
 If you made changes:
 ```bash
-pm2 restart construction-crm-api
+pm2 restart server
 ```
 
 ---
@@ -384,13 +384,13 @@ sudo certbot renew --dry-run
 ### Backend Management
 ```bash
 # View backend logs
-pm2 logs construction-crm-api
+pm2 logs server
 
 # Restart backend
-pm2 restart construction-crm-api
+pm2 restart server
 
 # Stop backend
-pm2 stop construction-crm-api
+pm2 stop server
 
 # View backend status
 pm2 status
@@ -437,7 +437,7 @@ sudo netstat -tlnp | grep 80
 ### Can't Connect to Database
 1. Check RDS security group allows EC2 IP
 2. Verify credentials in `.env`
-3. Check backend logs: `pm2 logs construction-crm-api`
+3. Check backend logs: `pm2 logs server`
 
 ### Frontend Shows Blank Page
 1. Check browser console for errors
@@ -450,7 +450,7 @@ sudo netstat -tlnp | grep 80
 3. Verify REACT_APP_API_URL in `.env.production`
 
 ### 502 Bad Gateway
-1. Backend might be down: `pm2 restart construction-crm-api`
+1. Backend might be down: `pm2 restart server`
 2. Check port 3000 is listening: `sudo netstat -tlnp | grep 3000`
 
 ---
@@ -469,7 +469,7 @@ git pull
 
 # Update backend
 npm install
-pm2 restart construction-crm-api
+pm2 restart server
 
 # Update frontend
 cd inventory-frontend

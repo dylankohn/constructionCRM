@@ -33,7 +33,7 @@ git pull
 ./monitoring.sh
 
 # Backend logs (live)
-pm2 logs construction-crm-api
+pm2 logs server
 
 # Nginx errors
 sudo tail -f /var/log/nginx/error.log
@@ -50,8 +50,8 @@ top          # CPU & processes
 
 ### Backend not responding
 ```bash
-pm2 restart construction-crm-api
-pm2 logs construction-crm-api
+pm2 restart server
+pm2 logs server
 ```
 
 ### Nginx issues
@@ -135,11 +135,11 @@ ssh -i ~/Downloads/________.pem ubuntu@________________
 
 ```bash
 pm2 status                       # Show all processes
-pm2 logs construction-crm-api    # View logs
-pm2 restart construction-crm-api # Restart backend
-pm2 stop construction-crm-api    # Stop backend
-pm2 start construction-crm-api   # Start backend
-pm2 delete construction-crm-api  # Remove process
+pm2 logs server    # View logs
+pm2 restart server # Restart backend
+pm2 stop server    # Stop backend
+pm2 start server   # Start backend
+pm2 delete server  # Remove process
 pm2 flush                        # Clear logs
 pm2 monit                        # Live monitoring
 ```

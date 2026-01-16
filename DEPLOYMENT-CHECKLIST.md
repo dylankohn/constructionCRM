@@ -147,7 +147,7 @@ When prompted, entered:
 
 ### Test Database Connection
 ```bash
-pm2 logs construction-crm-api
+pm2 logs server
 ```
 - [ ] Saw "Successfully connected to MySQL database!" in logs
 - [ ] No database connection errors
@@ -194,7 +194,7 @@ sudo systemctl status nginx
 df -h
 free -h
 ```
-- [ ] PM2 shows construction-crm-api online
+- [ ] PM2 shows server online
 - [ ] Nginx is active and running
 - [ ] Disk space has 50%+ free
 - [ ] Memory has 30%+ free
@@ -221,7 +221,7 @@ sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
 ### Update Credentials
 - [ ] Changed RDS master password (optional)
 - [ ] Updated .env file with new password
-- [ ] Restarted backend: `pm2 restart construction-crm-api`
+- [ ] Restarted backend: `pm2 restart server`
 
 ---
 
@@ -334,13 +334,13 @@ ssh -i ~/Downloads/construction-crm-key.pem ubuntu@YOUR_EC2_IP
 ./monitoring.sh
 
 # View logs
-pm2 logs construction-crm-api
+pm2 logs server
 
 # Deploy updates
 git pull && ./deploy.sh
 
 # Restart services
-pm2 restart construction-crm-api
+pm2 restart server
 sudo systemctl restart nginx
 ```
 

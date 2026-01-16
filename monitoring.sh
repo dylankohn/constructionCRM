@@ -26,7 +26,7 @@ echo ""
 
 # Check PM2 status
 echo -e "${BLUE}🚀 Backend Status (PM2):${NC}"
-pm2 status | grep -E "construction-crm-api|id|status"
+pm2 status | grep -E "server|id|status"
 echo ""
 
 # Check Nginx status
@@ -55,7 +55,7 @@ echo ""
 
 # Check recent logs
 echo -e "${BLUE}📋 Recent Backend Logs (last 10 lines):${NC}"
-pm2 logs construction-crm-api --lines 10 --nostream
+pm2 logs server --lines 10 --nostream
 echo ""
 
 # Check Nginx error logs
@@ -81,8 +81,8 @@ echo ""
 
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo -e "${YELLOW}Quick Commands:${NC}"
-echo "  View backend logs:     pm2 logs construction-crm-api"
-echo "  Restart backend:       pm2 restart construction-crm-api"
+echo "  View backend logs:     pm2 logs server"
+echo "  Restart backend:       pm2 restart server"
 echo "  Restart nginx:         sudo systemctl restart nginx"
 echo "  View nginx errors:     sudo tail -f /var/log/nginx/error.log"
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"

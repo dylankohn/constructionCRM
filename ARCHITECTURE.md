@@ -46,7 +46,7 @@
 │  │                  Managed by PM2                               │  │
 │  │                localhost:3000                                 │  │
 │  │                                                               │  │
-│  │  Process: construction-crm-api                               │  │
+│  │  Process: server                               │  │
 │  │  • User Authentication                                        │  │
 │  │  • Customer Management                                        │  │
 │  │  • Job Management                                             │  │
@@ -142,7 +142,7 @@ PM2 manages the backend Node.js process:
 │  PM2 Process Manager                 │
 │  ─────────────────────               │
 │                                      │
-│  Process: construction-crm-api      │
+│  Process: server      │
 │  Status:  online                    │
 │  Restart: 0                         │
 │  Uptime:  24h                       │
@@ -210,7 +210,7 @@ Available monitoring tools:
     ├─→ Recent logs
     └─→ API health check
 
-pm2 logs construction-crm-api
+pm2 logs server
     ↓
     └─→ Real-time backend logs
 

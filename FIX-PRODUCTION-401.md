@@ -14,7 +14,7 @@ cat .env
 
 ```bash
 pm2 list
-pm2 logs construction-crm-api --lines 50
+pm2 logs server --lines 50
 ```
 
 ## Step 3: Fix the .env file
@@ -83,8 +83,8 @@ node scripts/hash-passwords.js
 ## Step 6: Restart the backend
 
 ```bash
-pm2 restart construction-crm-api
-pm2 logs construction-crm-api --lines 20
+pm2 restart server
+pm2 logs server --lines 20
 ```
 
 You should see:
@@ -128,7 +128,7 @@ fetch('https://www.beamliner.com/auth/login', {
 **Solution:** Generate and add it:
 ```bash
 echo "JWT_SECRET=$(openssl rand -base64 32)" >> .env
-pm2 restart construction-crm-api
+pm2 restart server
 ```
 
 ### Issue: Passwords are not hashed
@@ -144,7 +144,7 @@ node scripts/hash-passwords.js
 **Solution:**
 ```bash
 cd ~/constructionCRM
-pm2 start server.js --name construction-crm-api
+pm2 start server.js --name server
 pm2 save
 ```
 
@@ -165,9 +165,9 @@ fi
 node scripts/hash-passwords.js
 
 # Restart backend
-pm2 restart construction-crm-api
+pm2 restart server
 
 # Check logs
-pm2 logs construction-crm-api --lines 30
+pm2 logs server --lines 30
 ```
 

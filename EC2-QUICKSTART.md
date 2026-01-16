@@ -80,8 +80,8 @@ Check your app status:
 
 Common commands:
 ```bash
-pm2 logs construction-crm-api  # View backend logs
-pm2 restart construction-crm-api  # Restart backend
+pm2 logs server  # View backend logs
+pm2 restart server  # Restart backend
 sudo systemctl restart nginx  # Restart web server
 sudo tail -f /var/log/nginx/error.log  # View Nginx errors
 ```
@@ -128,7 +128,7 @@ Set up GitHub Actions for automatic deployments:
 | Problem | Solution |
 |---------|----------|
 | Can't connect to database | Check RDS security group allows EC2 |
-| 502 Bad Gateway | Backend is down: `pm2 restart construction-crm-api` |
+| 502 Bad Gateway | Backend is down: `pm2 restart server` |
 | Blank frontend | Check build: `ls inventory-frontend/build` |
 | API errors | Check CORS in server.js |
 

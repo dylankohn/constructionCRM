@@ -211,7 +211,7 @@ In `server.js` and `ResetPassword.js`, add:
 
 **Check server logs**:
 ```bash
-pm2 logs construction-crm-api
+pm2 logs server
 ```
 
 **Common issues**:
@@ -285,7 +285,7 @@ The password reset feature is automatically deployed with your GitHub Actions wo
 Make sure to:
 1. ✅ Add email environment variables to `.env` on server
 2. ✅ Run database migrations
-3. ✅ Restart backend: `pm2 restart construction-crm-api`
+3. ✅ Restart backend: `pm2 restart server`
 4. ✅ Rebuild frontend with new routes
 
 ---
@@ -309,7 +309,7 @@ When rolling out this feature, notify users:
 
 ## Need Help?
 
-- Check server logs: `pm2 logs construction-crm-api`
+- Check server logs: `pm2 logs server`
 - Check nginx logs: `sudo tail -f /var/log/nginx/error.log`
 - Test email service with the manual test command above
 - Verify database tables and columns exist

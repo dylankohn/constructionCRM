@@ -320,7 +320,7 @@ By deploying this application, you'll gain hands-on experience with:
 ### Self-Service (Recommended)
 1. Check **[TROUBLESHOOTING.md](TROUBLESHOOTING.md)** for your issue
 2. Run `./monitoring.sh` to diagnose
-3. Review logs: `pm2 logs construction-crm-api`
+3. Review logs: `pm2 logs server`
 4. Re-read the relevant guide
 
 ### Documentation

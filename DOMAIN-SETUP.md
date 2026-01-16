@@ -86,7 +86,7 @@ app.use(cors({
 
 Save and restart:
 ```bash
-pm2 restart construction-crm-api
+pm2 restart server
 ```
 
 ### 4.2 Rebuild Frontend with New Domain
@@ -184,7 +184,7 @@ sudo nginx -t
 
 ### CORS Errors After Domain Setup
 - Make sure you added all domain variations to `server.js` CORS config
-- Restart PM2: `pm2 restart construction-crm-api`
+- Restart PM2: `pm2 restart server`
 - Clear browser cache with hard refresh
 
 ---

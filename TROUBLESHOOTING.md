@@ -57,7 +57,7 @@
 
 4. **Check backend logs**
    ```bash
-   pm2 logs construction-crm-api
+   pm2 logs server
    ```
 
 ---
@@ -71,14 +71,14 @@
 1. **Backend is not running**
    ```bash
    pm2 status
-   pm2 restart construction-crm-api
+   pm2 restart server
    ```
 
 2. **Port 3000 not listening**
    ```bash
    sudo netstat -tlnp | grep 3000
    # If nothing shows, backend crashed
-   pm2 logs construction-crm-api --lines 50
+   pm2 logs server --lines 50
    ```
 
 3. **Check Nginx proxy configuration**
@@ -139,7 +139,7 @@
    ```
    Restart backend:
    ```bash
-   pm2 restart construction-crm-api
+   pm2 restart server
    ```
 
 2. **Check frontend API URL**
@@ -269,7 +269,7 @@
 **Backend Status**
 ```bash
 pm2 status
-pm2 logs construction-crm-api --lines 50
+pm2 logs server --lines 50
 ```
 
 **Nginx Status**
@@ -310,7 +310,7 @@ ps aux | grep nginx
 
 **Backend logs (live)**
 ```bash
-pm2 logs construction-crm-api
+pm2 logs server
 ```
 
 **Nginx error logs (live)**
@@ -341,7 +341,7 @@ curl http://YOUR_EC2_IP/customers/1
   echo "=== PM2 Status ==="
   pm2 status
   echo "=== PM2 Logs ==="
-  pm2 logs construction-crm-api --lines 100 --nostream
+  pm2 logs server --lines 100 --nostream
   echo "=== Nginx Error Log ==="
   sudo tail -n 100 /var/log/nginx/error.log
   echo "=== Nginx Access Log ==="
@@ -364,7 +364,7 @@ scp -i your-key.pem ubuntu@YOUR_EC2_IP:~/debug-logs.txt .
 
 ```bash
 # Restart backend
-pm2 restart construction-crm-api
+pm2 restart server
 
 # Restart Nginx
 sudo systemctl restart nginx
