@@ -253,11 +253,12 @@ export default function JobMaterials({ user, setUser }) {
             });
         }
         
+        const parsedCustomerId = parseInt(customerId);
         const payload = {
             ...formData,
             user_id: user.id,
             job_id: parseInt(jobId),
-            customer_id: parseInt(customerId),
+            ...(parsedCustomerId && !isNaN(parsedCustomerId) && { customer_id: parsedCustomerId }),
             material_type: detectedMaterialType ? detectedMaterialType.type : null,
             dimensions: Object.keys(dimensionsToSave).length > 0 ? dimensionsToSave : null,
         };
@@ -273,6 +274,10 @@ export default function JobMaterials({ user, setUser }) {
                 if (res.ok) {
                     await fetchMaterials();
                     handleClose();
+                } else {
+                    const errorData = await res.json();
+                    console.error("Error updating material:", errorData);
+                    alert(`Failed to update material: ${errorData.error || 'Unknown error'}\n${errorData.details ? JSON.stringify(errorData.details, null, 2) : ''}`);
                 }
             } else {
                 // Add new material
@@ -284,10 +289,15 @@ export default function JobMaterials({ user, setUser }) {
                 if (res.ok) {
                     await fetchMaterials();
                     handleClose();
+                } else {
+                    const errorData = await res.json();
+                    console.error("Error adding material:", errorData);
+                    alert(`Failed to add material: ${errorData.error || 'Unknown error'}\n${errorData.details ? JSON.stringify(errorData.details, null, 2) : ''}`);
                 }
             }
         } catch (err) {
             console.error("Error saving material:", err);
+            alert(`Error: ${err.message}`);
         }
     };
 
