@@ -139,6 +139,8 @@ app.use(apiRateLimiter);
 app.post('/auth/register', authRateLimiter, validate.register, async (req, res) => {
   const { username, password } = req.body;
   
+  console.log('🆕 Registration attempt:', { username, passwordLength: password?.length });
+  
   // Validate input
   if (!username || !password) {
     return res.status(400).json({ error: 'Username and password are required' });
@@ -151,24 +153,33 @@ app.post('/auth/register', authRateLimiter, validate.register, async (req, res) 
   try {
     // Hash the password before storing
     const bcrypt = require('bcryptjs');
+    console.log('🔐 Bcrypt loaded, hashing password...');
+    
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('✅ Password hashed successfully:', {
+      hashedPrefix: hashedPassword.substring(0, 20) + '...',
+      length: hashedPassword.length
+    });
     
     db.query(
       'INSERT INTO users (username, password) VALUES (?, ?)',
       [username, hashedPassword],
       (err, results) => {
         if (err) {
+          console.error('❌ DB error during registration:', err.message);
           // Check for duplicate username
           if (err.code === 'ER_DUP_ENTRY') {
             return res.status(409).json({ error: 'Username already exists' });
           }
           return res.status(500).json({ error: err.message });
         }
+        console.log('✅ User created successfully:', { userId: results.insertId, username });
         res.json({ message: 'Account created', userId: results.insertId });
       }
     );
   } catch (error) {
-    res.status(500).json({ error: 'Error creating account' });
+    console.error('❌ Registration error:', error);
+    res.status(500).json({ error: 'Error creating account: ' + error.message });
   }
 });
 
