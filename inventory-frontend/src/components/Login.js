@@ -69,6 +69,21 @@ function Login({ setUser }) {
           {isRegister ? "Login" : "Create Account"}
         </span>
       </p>
+      {!isRegister && (
+        <p style={{ textAlign: "center", marginTop: "16px" }}>
+          <span
+            style={{ 
+              color: "#667eea", 
+              cursor: "pointer", 
+              fontSize: "14px",
+              textDecoration: "underline"
+            }}
+            onClick={() => window.location.href = "/forgot-password"}
+          >
+            Forgot Password?
+          </span>
+        </p>
+      )}
     </div>
   );
 }

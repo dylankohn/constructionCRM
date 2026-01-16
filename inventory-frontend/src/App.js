@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./components/Login";
+import ForgotPassword from "./components/ForgotPassword";
+import ResetPassword from "./components/ResetPassword";
 import Dashboard from "./components/Dashboard";
 import CustomerJobs from "./components/CustomerJobs";
 import JobDetails from "./components/JobDetails";
@@ -59,6 +61,14 @@ function App() {
         <Route
           path="/login"
           element={!user ? <Login setUser={handleSetUser} /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/forgot-password"
+          element={!user ? <ForgotPassword /> : <Navigate to="/" />}
+        />
+        <Route
+          path="/reset-password"
+          element={!user ? <ResetPassword /> : <Navigate to="/" />}
         />
         <Route
           path="/"
