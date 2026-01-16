@@ -111,45 +111,45 @@ const validationRules = {
       .isLength({ min: 1, max: 255 }).withMessage('Material name must be 1-255 characters')
       .escape(),
     body('description')
-      .optional()
+      .optional({ checkFalsy: true })
       .trim()
       .isLength({ max: 1000 }).withMessage('Description must not exceed 1000 characters'),
     body('quantity')
-      .optional()
+      .notEmpty().withMessage('Quantity is required')
       .isFloat({ min: 0 }).withMessage('Quantity must be a positive number'),
     body('unit')
-      .optional()
+      .optional({ checkFalsy: true })
       .trim()
       .isLength({ max: 50 }).withMessage('Unit must not exceed 50 characters')
       .escape(),
     body('unit_cost')
-      .optional()
+      .optional({ checkFalsy: true })
       .isFloat({ min: 0 }).withMessage('Unit cost must be a positive number'),
     body('status')
-      .optional()
+      .optional({ checkFalsy: true })
       .isIn(['needed', 'ordered', 'in_transit', 'delivered', 'installed'])
       .withMessage('Invalid material status'),
     body('location')
-      .optional()
+      .optional({ checkFalsy: true })
       .trim()
       .isLength({ max: 255 }).withMessage('Location must not exceed 255 characters')
       .escape(),
     body('supplier')
-      .optional()
+      .optional({ checkFalsy: true })
       .trim()
       .isLength({ max: 255 }).withMessage('Supplier must not exceed 255 characters')
       .escape(),
     body('order_date')
-      .optional()
+      .optional({ checkFalsy: true })
       .isISO8601().withMessage('Invalid order date format'),
     body('expected_delivery')
-      .optional()
+      .optional({ checkFalsy: true })
       .isISO8601().withMessage('Invalid expected delivery date format'),
     body('actual_delivery')
-      .optional()
+      .optional({ checkFalsy: true })
       .isISO8601().withMessage('Invalid actual delivery date format'),
     body('notes')
-      .optional()
+      .optional({ checkFalsy: true })
       .trim()
       .isLength({ max: 2000 }).withMessage('Notes must not exceed 2000 characters'),
     body('user_id')
@@ -157,7 +157,7 @@ const validationRules = {
     body('job_id')
       .isInt({ min: 1 }).withMessage('Valid job ID is required'),
     body('customer_id')
-      .optional()
+      .optional({ checkFalsy: true })
       .isInt({ min: 1 }).withMessage('Valid customer ID is required'),
     handleValidationErrors
   ]

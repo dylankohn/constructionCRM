@@ -764,23 +764,31 @@ export default function JobMaterials({ user, setUser }) {
         if (material.status === newStatus) return;
 
         try {
+            // Build payload with only non-null values to avoid validation errors
+            const payload = {
+                material_name: material.material_name,
+                quantity: material.quantity,
+                status: newStatus,
+                job_id: parseInt(jobId),
+                user_id: user.id,
+            };
+
+            // Only include optional fields if they have values
+            if (material.description) payload.description = material.description;
+            if (material.unit) payload.unit = material.unit;
+            if (material.unit_cost) payload.unit_cost = material.unit_cost;
+            if (material.location) payload.location = material.location;
+            if (material.supplier) payload.supplier = material.supplier;
+            if (material.order_date) payload.order_date = material.order_date;
+            if (material.expected_delivery) payload.expected_delivery = material.expected_delivery;
+            if (material.actual_delivery) payload.actual_delivery = material.actual_delivery;
+            if (material.notes) payload.notes = material.notes;
+            if (material.material_type) payload.material_type = material.material_type;
+            if (material.dimensions) payload.dimensions = material.dimensions;
+
             const res = await authFetch(`${BASE_URL}/materials/${material.id}/${user.id}`, {
                 method: "PUT",
-                body: JSON.stringify({
-                    material_name: material.material_name,
-                    description: material.description,
-                    quantity: material.quantity,
-                    unit: material.unit,
-                    unit_cost: material.unit_cost,
-                    status: newStatus,
-                    location: material.location,
-                    supplier: material.supplier,
-                    order_date: material.order_date,
-                    expected_delivery: material.expected_delivery,
-                    actual_delivery: material.actual_delivery,
-                    notes: material.notes,
-                    job_id: jobId,
-                }),
+                body: JSON.stringify(payload),
             });
             if (!res) return;
 
@@ -826,23 +834,53 @@ export default function JobMaterials({ user, setUser }) {
         if (material[editingCell.field] === updatedValue) return;
 
         try {
+            // Build payload with only non-null values to avoid validation errors
+            const payload = {
+                material_name: editingCell.field === "material_name" ? updatedValue : material.material_name,
+                quantity: editingCell.field === "quantity" ? updatedValue : material.quantity,
+                status: material.status,
+                job_id: parseInt(jobId),
+                user_id: user.id,
+            };
+
+            // Only include optional fields if they have values
+            if (material.description || editingCell.field === "description") {
+                payload.description = editingCell.field === "description" ? updatedValue : material.description;
+            }
+            if (material.unit || editingCell.field === "unit") {
+                payload.unit = editingCell.field === "unit" ? updatedValue : material.unit;
+            }
+            if (material.unit_cost || editingCell.field === "unit_cost") {
+                payload.unit_cost = editingCell.field === "unit_cost" ? updatedValue : material.unit_cost;
+            }
+            if (material.location || editingCell.field === "location") {
+                payload.location = editingCell.field === "location" ? updatedValue : material.location;
+            }
+            if (material.supplier || editingCell.field === "supplier") {
+                payload.supplier = editingCell.field === "supplier" ? updatedValue : material.supplier;
+            }
+            if (material.order_date) {
+                payload.order_date = material.order_date;
+            }
+            if (material.expected_delivery) {
+                payload.expected_delivery = material.expected_delivery;
+            }
+            if (material.actual_delivery) {
+                payload.actual_delivery = material.actual_delivery;
+            }
+            if (material.notes) {
+                payload.notes = material.notes;
+            }
+            if (material.material_type) {
+                payload.material_type = material.material_type;
+            }
+            if (material.dimensions) {
+                payload.dimensions = material.dimensions;
+            }
+
             const res = await authFetch(`${BASE_URL}/materials/${material.id}/${user.id}`, {
                 method: "PUT",
-                body: JSON.stringify({
-                    material_name: editingCell.field === "material_name" ? updatedValue : material.material_name,
-                    description: editingCell.field === "description" ? updatedValue : material.description,
-                    quantity: editingCell.field === "quantity" ? updatedValue : material.quantity,
-                    unit: editingCell.field === "unit" ? updatedValue : material.unit,
-                    unit_cost: editingCell.field === "unit_cost" ? updatedValue : material.unit_cost,
-                    status: material.status,
-                    location: editingCell.field === "location" ? updatedValue : material.location,
-                    supplier: editingCell.field === "supplier" ? updatedValue : material.supplier,
-                    order_date: material.order_date,
-                    expected_delivery: material.expected_delivery,
-                    actual_delivery: material.actual_delivery,
-                    notes: material.notes,
-                    job_id: jobId,
-                }),
+                body: JSON.stringify(payload),
             });
             if (!res) return;
 
