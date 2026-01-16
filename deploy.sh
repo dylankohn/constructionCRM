@@ -17,7 +17,7 @@ git pull origin main
 # Update backend
 echo "🔧 Updating backend..."
 npm install --production
-pm2 restart construction-crm-api
+pm2 restart server
 
 # Update frontend
 echo "🎨 Rebuilding frontend..."
